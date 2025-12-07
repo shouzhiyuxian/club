@@ -1,189 +1,310 @@
-# django_management_system_template
+# 高校社团成员管理系统
 
-✨ **基于 Django 和 Mysql 的管理系统模板** ✨：后台管理系统，OA ，表单系统，管理员系统，数据库管理系统模板，数据库访问模板。前端后端不分离，Web 应用增删改查数据库。前端，Web应用，mysql数据库。详细注释，高度封装，易复用。
+✨ **基于 Django 和 MySQL 的高校社团成员管理系统** ✨：一个完整的社团管理平台，支持社团管理、成员管理、活动管理、活动报名等功能。前端后端不分离，Web 应用增删改查数据库。详细注释，高度封装，易复用。
 
+## 系统功能
 
-[个人网站：www.bytesc.top](http://www.bytesc.top)
+### 核心功能模块
 
-[个人博客：blog.bytesc.top](http://blog.bytesc.top)
+1. **社团管理**
+   - 社团信息的增删改查
+   - 社团基本信息：名称、简介、成立日期、社长、联系方式等
+   - 社团状态管理（正常、暂停、解散）
 
-🔔 如有项目相关问题，欢迎在本项目提出`issue`，我一般会在 24 小时内回复。
+2. **部门管理**
+   - 社团内部门的管理
+   - 部门与社团的关联
+   - 部门信息的增删改查
 
-## 界面展示
+3. **角色管理**
+   - 成员在社团中的角色定义
+   - 角色级别：社长、副社长、部长、副部长、普通成员
+   - 角色信息的增删改查
 
-首页
-![img](./readme_img/frontpage.png)
+4. **成员管理**
+   - 成员信息的增删改查
+   - 成员基本信息：学号、姓名、性别、年级、专业、联系方式等
+   - 成员与社团、部门、角色的关联
+   - 成员状态管理（正常、请假、退社）
+   - 支持按社团筛选成员
 
-登录
-![img](./readme_img/login.png)
+5. **活动管理**
+   - 社团活动的增删改查
+   - 活动信息：名称、描述、地点、时间、参与人数限制等
+   - 活动状态管理（报名中、进行中、已结束、已取消）
+   - 活动详情查看，包含报名列表
 
-使用 cookie 保存登录状态。未登录的用户只能访问首页和登录页面。否则重定向到登录页面。
-![img](./readme_img/cookie.png)
+6. **活动报名管理**
+   - 成员活动报名的增删改查
+   - 报名状态管理（已报名、已参加、已取消、未参加）
+   - 自动更新活动的当前参与人数
+   - 防止重复报名
 
-用户管理
-![img](./readme_img/userm.png)
+7. **管理员管理**
+   - 管理员账户的增删改查
+   - 密码重置功能
+   - 登录认证
 
-添加用户
-![img](./readme_img/useradd.png)
+## 技术栈
 
-部门管理
-![img](./readme_img/depm.png)
+- **后端框架**：Django 4.1
+- **数据库**：MySQL
+- **前端框架**：Bootstrap 5.3、MDB5
+- **其他**：jQuery、Font Awesome、Bootstrap Icons
 
-号码管理
-![img](./readme_img/numberm.png)
+## 系统特点
 
-编辑号码
-![img](./readme_img/numbere.png)
+- ✅ 完整的 CRUD 功能
+- ✅ 数据关联管理（社团-部门-成员-活动-报名）
+- ✅ 搜索和筛选功能
+- ✅ 分页显示
+- ✅ 表单验证
+- ✅ 响应式界面设计
+- ✅ 登录认证和权限控制
+- ✅ 使用 Session 保存登录状态
 
-任务管理
-![img](./readme_img/taskm.png)
+## 安装与使用
 
-## 使用方法
+### 1. 安装依赖
 
-安装依赖
 ```bash
 pip install -r requirement.txt
 ```
 
-打开 setting.py，找到83行左右。
+### 2. 配置数据库
 
-如果使用 mysql 就使用下面一个 DATABASES，把上面的注释掉。
-在里面填写自己 mysql 服务器的 `'USER'`，`'PASSWORD'`，`'HOST'`，`'PORT'`。
-手动创建和 `'NAME'` 字段内容同名的数据库
+打开 `Learntest/settings.py`，找到数据库配置部分（约第92行）。
 
-如果使用 sqlite 就使用上面一个 DATABASES，把下面的注释掉即可。
+如果使用 MySQL（推荐），配置如下：
 
 ```python
-# Database
-# https://docs.djangoproject.com/en/4.1/ref/settings/#databases
-
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.sqlite3",
-#         "NAME": BASE_DIR / "db.sqlite3",
-#     }
-# }
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'djangolearntest',
-        'USER': 'root',
-        'PASSWORD': '123456',
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
+        'NAME': 'club',  # 数据库名称
+        'USER': 'root',  # 数据库用户名
+        'PASSWORD': 'root',  # 数据库密码
+        'HOST': '127.0.0.1',  # 数据库主机
+        'PORT': '3306',  # 数据库端口
     }
 }
 ```
 
-初始化数据库
+**注意**：请先手动创建名为 `club` 的数据库。
+
+如果使用 SQLite，取消注释 SQLite 配置并注释掉 MySQL 配置即可。
+
+### 3. 初始化数据库
+
 ```bash
+# 生成迁移文件
 python manage.py makemigrations
+
+# 执行迁移
 python manage.py migrate
 ```
 
-进入django shell
+### 4. 创建管理员账户
+
+进入 Django shell：
+
 ```bash
 python manage.py shell
 ```
 
-手动添加管理员
+执行以下命令创建管理员：
+
 ```python
-import app01.models
-app01.models.MyAdmin.objects.create(id="admin", user_name="admin", password="9b7bdac3cbd4af86551d5f27d64a5291")
+from app01.utils.md5 import get_md5
+from app01.models import MyAdmin
+
+# 创建管理员账户
+# 用户名：admin，密码：12345678
+MyAdmin.objects.create(
+    id="admin",
+    user_name="admin",
+    password=get_md5("12345678")
+)
 exit()
 ```
 
-运行
+### 5. 运行系统
+
 ```bash
 python manage.py runserver
 ```
-如果默认 8000 端口被占用，换端口即可
+
+如果默认 8000 端口被占用，可以指定其他端口：
+
 ```bash
 python manage.py runserver 8008
 ```
 
-登录用户名是`admin`，密码是`12345678`
-![img](./readme_img/login.png)
+### 6. 访问系统
+
+- **首页**：http://127.0.0.1:8000/
+- **登录页面**：http://127.0.0.1:8000/login/
+
+**默认登录信息**：
+- 用户名：`admin`
+- 密码：`12345678`
 
 ## 项目结构
 
-```txt
+```
 .
 │  .gitignore
-│  cmd.txt
-│  guide.md
 │  LICENSE
 │  manage.py
 │  README.md
 │  requirement.txt
-├─app01
-│  │  admin.py
-│  │  apps.py
-│  │  models.py
-│  │  tests.py
-│  │  views.py
+│
+├─app01                    # 主应用
+│  │  admin.py            # Django Admin 配置
+│  │  apps.py             # 应用配置
+│  │  models.py           # 数据模型（Club, Member, Activity等）
+│  │  tests.py            # 测试文件
+│  │  views.py            # 首页视图
 │  │  __init__.py
 │  │
-│  └─ middle_ware
-│     └─ my_auth.py
-├─srcs
-│  │  ├─forms
-│  │  │  └─ form.py
-│  │  │
-│  │  └─views
-│  │         account.py
-│  │         departments.py
-│  │         myadmin.py
-│  │         number.py
-│  │         order.py
-│  │         task.py
-│  │         user.py
-│  ├─static
+│  ├─middle_ware          # 中间件
+│  │  └─ my_auth.py       # 认证中间件
 │  │
-│  ├─templates
-│  │  │  change.html
-│  │  │  error.html
-│  │  │  index.html
-│  │  │  layout.html
+│  ├─srcs                 # 源代码目录
+│  │  ├─forms             # 表单
+│  │  │  └─ form.py       # 所有表单类
 │  │  │
-│  │  ├─account
-│  │  │      login.html
+│  │  ├─views             # 视图函数
+│  │  │  ├─ account.py   # 登录/登出
+│  │  │  ├─ club.py      # 社团管理
+│  │  │  ├─ department.py # 部门管理
+│  │  │  ├─ role.py      # 角色管理
+│  │  │  ├─ member.py    # 成员管理
+│  │  │  ├─ activity.py  # 活动管理
+│  │  │  ├─ registration.py # 活动报名管理
+│  │  │  └─ myadmin.py   # 管理员管理
 │  │  │
-│  │  ├─departments
-│  │  │      depart_add.html
-│  │  │      depart_edit.html
-│  │  │      depart_list.html
-│  │  │
-│  │  ├─myadmin
-│  │  │      myadmin_list.html
-│  │  │
-│  │  ├─numbers
-│  │  │      num_add.html
-│  │  │      num_edit.html
-│  │  │      num_list.html
-│  │  │
-│  │  ├─order
-│  │  │      order_list.html
-│  │  │
-│  │  ├─task
-│  │  │      task_list.html
-│  │  │
-│  │  └─users
-│  │          user_add.html
-│  │          user_edit.html
-│  │          user_list.html
+│  │  └─utils             # 工具类
+│  │     ├─ bootstrap_modelform.py # Bootstrap 表单基类
+│  │     ├─ md5.py        # MD5 加密工具
+│  │     └─ page_nav.py   # 分页工具
 │  │
-│  └─ utils
-│    bootstrap_modelform.py
-│    md5.py
-│    page_nav.py
+│  ├─static               # 静态文件
+│  │  ├─ bootstrap-5.3.0-alpha1-dist/
+│  │  ├─ bootstrap-icons-1.10.4/
+│  │  ├─ fontawesome-free-6.4.0-web/
+│  │  ├─ jquery-3.6.4.min.js
+│  │  └─ MDB5-STANDARD-UI-KIT-Free-6.2.0/
+│  │
+│  └─templates            # 模板文件
+│     ├─ layout.html      # 基础布局模板
+│     ├─ index.html       # 首页
+│     ├─ error.html       # 错误页面
+│     ├─ account/         # 登录相关模板
+│     ├─ club/            # 社团管理模板
+│     ├─ department/      # 部门管理模板
+│     ├─ role/            # 角色管理模板
+│     ├─ member/          # 成员管理模板
+│     ├─ activity/        # 活动管理模板
+│     ├─ registration/    # 活动报名模板
+│     └─ myadmin/         # 管理员管理模板
 │
-├─Learntest
-│     asgi.py
-│     settings.py
-│     urls.py
-│     wsgi.py
-│
-└─ readme_img
+└─Learntest               # 项目配置
+   ├─ settings.py         # Django 设置
+   ├─ urls.py            # URL 路由配置
+   ├─ wsgi.py            # WSGI 配置
+   └─ asgi.py            # ASGI 配置
 ```
+
+## 数据模型说明
+
+### 主要数据模型
+
+1. **Club（社团）**
+   - 社团基本信息：名称、简介、成立日期、社长、联系方式、状态
+
+2. **Department（部门）**
+   - 部门信息：名称、所属社团、简介
+
+3. **Role（角色）**
+   - 角色信息：名称、级别、描述
+
+4. **Member（成员）**
+   - 成员信息：学号、姓名、性别、年级、专业、联系方式、所属社团、所属部门、角色、加入时间、状态
+
+5. **Activity（活动）**
+   - 活动信息：名称、所属社团、描述、地点、时间、参与人数限制、组织者、状态
+
+6. **ActivityRegistration（活动报名）**
+   - 报名信息：活动、成员、报名时间、状态、备注
+
+7. **MyAdmin（管理员）**
+   - 管理员信息：账号、姓名、密码
+
+## 功能使用说明
+
+### 1. 社团管理
+- 访问 `/club/list` 查看所有社团
+- 可以添加、编辑、删除社团
+- 支持按社团名称搜索
+
+### 2. 部门管理
+- 访问 `/department/list` 查看所有部门
+- 可以添加、编辑、删除部门
+- 支持按社团筛选部门
+
+### 3. 角色管理
+- 访问 `/role/list` 查看所有角色
+- 可以添加、编辑、删除角色
+- 建议先创建基础角色（社长、副社长、部长、副部长、普通成员）
+
+### 4. 成员管理
+- 访问 `/member/list` 查看所有成员
+- 可以添加、编辑、删除成员
+- 支持按姓名搜索和按社团筛选
+
+### 5. 活动管理
+- 访问 `/activity/list` 查看所有活动
+- 可以添加、编辑、删除活动
+- 点击"详情"查看活动详情和报名列表
+- 支持按活动名称搜索和按社团筛选
+
+### 6. 活动报名管理
+- 访问 `/registration/list` 查看所有报名记录
+- 可以添加、编辑、删除报名记录
+- 支持按活动和成员筛选
+- 在活动详情页可以直接添加报名
+
+## 注意事项
+
+1. **数据库配置**：请确保 MySQL 服务已启动，并已创建相应的数据库
+2. **管理员账户**：首次使用需要创建管理员账户（见安装步骤）
+3. **数据关联**：删除社团时会级联删除其下的部门和活动
+4. **重复报名**：系统会自动防止同一成员重复报名同一活动
+5. **参与人数**：活动的当前参与人数会根据报名状态自动更新
+
+## 开发说明
+
+- 系统使用 Django 4.1 开发
+- 前端使用 Bootstrap 5.3 和 MDB5 框架
+- 使用 Session 进行用户认证
+- 所有表单都使用 Bootstrap 样式
+- 支持响应式设计，可在移动端访问
+
+## 许可证
+
+详见 LICENSE 文件
+
+## 更新日志
+
+### v2.0.0 (当前版本)
+- 重构为高校社团成员管理系统
+- 新增社团管理功能
+- 新增成员管理功能
+- 新增活动管理功能
+- 新增活动报名功能
+- 优化界面和用户体验
+
+---
+
+如有问题或建议，欢迎提出 Issue！
