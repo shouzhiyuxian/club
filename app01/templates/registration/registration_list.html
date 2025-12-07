@@ -1,0 +1,76 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-7 col-sm-4" >
+            <a class="btn btn-success" style="margin: 10px" href="/registration/add" target="_blank">
+                <i class="bi bi-plus-circle-fill"></i>
+                添加报名
+            </a>
+            </div>
+            <div class="col-md-5 col-sm-8 ">
+                <form method="get">
+                <div class="d-flex flex-row">
+                    <select class="form-control me-2" name="activity_id" style="margin: 10px; width: 150px">
+                        <option value="">全部活动</option>
+                        {% for activity in activities %}
+                        <option value="{{ activity.activity_id }}" {% if selected_activity_id and selected_activity_id|stringformat:"s" == activity.activity_id|stringformat:"s" %}selected{% endif %}>{{ activity.title }}</option>
+                        {% endfor %}
+                    </select>
+                    <select class="form-control me-2" name="member_id" style="margin: 10px; width: 150px">
+                        <option value="">全部成员</option>
+                        {% for member in members %}
+                        <option value="{{ member.member_id }}" {% if selected_member_id == member.member_id %}selected{% endif %}>{{ member.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button class="btn btn-outline-success" type="submit" style="margin: 10px; width: 100px"><strong>筛选</strong></button>
+                </div>
+                </form>
+            </div>
+        </div>
+        <ul class="list-group">
+            <li class="list-group-item list-group-item-dark">
+                <i class="bi bi-calendar2-event-fill"></i>
+                <strong>活动报名列表</strong>
+            </li>
+            <li class="list-group-item">
+                <table class="table">
+                      <thead>
+                        <tr>
+                          <th scope="col">报名ID</th>
+                          <th scope="col">活动名称</th>
+                          <th scope="col">成员姓名</th>
+                          <th scope="col">学号</th>
+                          <th scope="col">报名时间</th>
+                          <th scope="col">状态</th>
+                          <th scope="col">操作</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                      {% for obj in queryset %}
+                        <tr>
+                          <th scope="row">{{ obj.registration_id }}</th>
+                          <td>{{ obj.activity.title}}</td>
+                          <td>{{ obj.member.name}}</td>
+                          <td>{{ obj.member.member_id}}</td>
+                          <td>{{ obj.register_time}}</td>
+                          <td>{{ obj.get_status_display}}</td>
+                          <td>
+                              <a class="btn btn-primary btn-sm" href="/registration/{{ obj.registration_id }}/edit">编辑</a>
+                              <a class="btn btn-danger btn-sm" href="/registration/delete/?nid={{ obj.registration_id }}">删除</a>
+                          </td>
+                        </tr>
+                      {% endfor %}
+                      </tbody>
+                    </table>
+            </li>
+        </ul>
+        <div style="display: flex; justify-content: center;">
+                    {{ page_nav_string }}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

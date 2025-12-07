@@ -1,0 +1,81 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div>
+    <div class="container">
+        <div style="margin: 10px">
+            <a class="btn btn-secondary" href="/activity/list">返回活动列表</a>
+            <a class="btn btn-success" href="/registration/add?activity_id={{ activity.activity_id }}" target="_blank">
+                <i class="bi bi-plus-circle-fill"></i>
+                添加报名
+            </a>
+        </div>
+        
+        <ul class="list-group">
+            <li class="list-group-item list-group-item-dark">
+                <i class="bi bi-calendar2-event-fill"></i>
+                <strong>活动详情：{{ activity.title }}</strong>
+            </li>
+            <li class="list-group-item">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>活动名称：</strong>{{ activity.title }}</p>
+                        <p><strong>所属社团：</strong>{{ activity.club.name|default:"未设置" }}</p>
+                        <p><strong>活动地点：</strong>{{ activity.location|default:"未设置" }}</p>
+                        <p><strong>开始时间：</strong>{{ activity.start_time|default:"未设置" }}</p>
+                        <p><strong>结束时间：</strong>{{ activity.end_time|default:"未设置" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>组织者：</strong>{{ activity.organizer.name|default:"未设置" }}</p>
+                        <p><strong>参与人数：</strong>{{ activity.current_participants }}/{{ activity.max_participants|default:"不限" }}</p>
+                        <p><strong>状态：</strong>{{ activity.get_status_display }}</p>
+                        <p><strong>活动描述：</strong></p>
+                        <p>{{ activity.description|default:"无" }}</p>
+                    </div>
+                </div>
+            </li>
+        </ul>
+        
+        <ul class="list-group" style="margin-top: 20px">
+            <li class="list-group-item list-group-item-dark">
+                <i class="bi bi-people-fill"></i>
+                <strong>报名列表</strong>
+            </li>
+            <li class="list-group-item">
+                <table class="table">
+                      <thead>
+                        <tr>
+                          <th scope="col">报名ID</th>
+                          <th scope="col">成员姓名</th>
+                          <th scope="col">学号</th>
+                          <th scope="col">报名时间</th>
+                          <th scope="col">状态</th>
+                          <th scope="col">操作</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                      {% for reg in registrations %}
+                        <tr>
+                          <th scope="row">{{ reg.registration_id }}</th>
+                          <td>{{ reg.member.name}}</td>
+                          <td>{{ reg.member.member_id}}</td>
+                          <td>{{ reg.register_time}}</td>
+                          <td>{{ reg.get_status_display}}</td>
+                          <td>
+                              <a class="btn btn-primary btn-sm" href="/registration/{{ reg.registration_id }}/edit">编辑</a>
+                              <a class="btn btn-danger btn-sm" href="/registration/delete/?nid={{ reg.registration_id }}">删除</a>
+                          </td>
+                        </tr>
+                      {% empty %}
+                        <tr>
+                          <td colspan="6" style="text-align: center;">暂无报名记录</td>
+                        </tr>
+                      {% endfor %}
+                      </tbody>
+                    </table>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+

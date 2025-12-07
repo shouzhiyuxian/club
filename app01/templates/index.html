@@ -1,73 +1,86 @@
 {% extends "layout.html" %}
 {% block content %}
 <div>
- <!-- Carousel wrapper -->
-<div id="carouselBasicExample" class="carousel slide carousel-fade" data-mdb-ride="carousel">
-  <!-- Indicators -->
-  <div class="carousel-indicators">
-    <button
-      type="button"
-      data-mdb-target="#carouselBasicExample"
-      data-mdb-slide-to="0"
-      class="active"
-      aria-current="true"
-      aria-label="Slide 1"
-    ></button>
-    <button
-      type="button"
-      data-mdb-target="#carouselBasicExample"
-      data-mdb-slide-to="1"
-      aria-label="Slide 2"
-    ></button>
-    <button
-      type="button"
-      data-mdb-target="#carouselBasicExample"
-      data-mdb-slide-to="2"
-      aria-label="Slide 3"
-    ></button>
+  <div class="container mt-4">
+    <div class="row">
+      <div class="col-12">
+        <div class="jumbotron bg-light p-5 rounded">
+          <h1 class="display-4">高校社团成员管理系统</h1>
+          <p class="lead">欢迎使用高校社团成员管理系统，本系统可以帮助您高效管理社团、成员、活动等信息。</p>
+          <hr class="my-4">
+          <p>系统功能包括：社团管理、成员管理、活动管理、活动报名管理等。</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="row mt-4">
+      <div class="col-md-3">
+        <div class="card text-center">
+          <div class="card-body">
+            <h5 class="card-title"><i class="bi bi-people-fill"></i> 社团管理</h5>
+            <p class="card-text">管理社团基本信息，包括社团名称、社长、联系方式等</p>
+            <a href="/club/list" class="btn btn-primary">进入</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-center">
+          <div class="card-body">
+            <h5 class="card-title"><i class="bi bi-person-fill"></i> 成员管理</h5>
+            <p class="card-text">管理社团成员信息，包括学号、姓名、年级、专业等</p>
+            <a href="/member/list" class="btn btn-primary">进入</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-center">
+          <div class="card-body">
+            <h5 class="card-title"><i class="bi bi-calendar-event-fill"></i> 活动管理</h5>
+            <p class="card-text">管理社团活动，包括活动名称、时间、地点等信息</p>
+            <a href="/activity/list" class="btn btn-primary">进入</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-center">
+          <div class="card-body">
+            <h5 class="card-title"><i class="bi bi-clipboard-check-fill"></i> 活动报名</h5>
+            <p class="card-text">管理活动报名信息，查看报名状态和参与情况</p>
+            <a href="/registration/list" class="btn btn-primary">进入</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h5>系统统计</h5>
+          </div>
+          <div class="card-body">
+            <div class="row text-center">
+              <div class="col-md-3">
+                <h3>{% if club_count %}{{ club_count }}{% else %}0{% endif %}</h3>
+                <p>社团总数</p>
+              </div>
+              <div class="col-md-3">
+                <h3>{% if member_count %}{{ member_count }}{% else %}0{% endif %}</h3>
+                <p>成员总数</p>
+              </div>
+              <div class="col-md-3">
+                <h3>{% if activity_count %}{{ activity_count }}{% else %}0{% endif %}</h3>
+                <p>活动总数</p>
+              </div>
+              <div class="col-md-3">
+                <h3>{% if registration_count %}{{ registration_count }}{% else %}0{% endif %}</h3>
+                <p>报名总数</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-
-  <!-- Inner -->
-  <div class="carousel-inner">
-    <!-- Single item -->
-    <div class="carousel-item active">
-      <img src="https://mdbcdn.b-cdn.net/img/Photos/Slides/img%20(15).webp" class="d-block w-100" alt="Sunset Over the City"/>
-      <div class="carousel-caption d-none d-md-block">
-        <h5>First slide label</h5>
-        <p>Nulla vitae elit libero, a pharetra augue mollis interdum.</p>
-      </div>
-    </div>
-
-    <!-- Single item -->
-    <div class="carousel-item">
-      <img src="https://mdbcdn.b-cdn.net/img/Photos/Slides/img%20(22).webp" class="d-block w-100" alt="Canyon at Nigh"/>
-      <div class="carousel-caption d-none d-md-block">
-        <h5>Second slide label</h5>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-      </div>
-    </div>
-
-    <!-- Single item -->
-    <div class="carousel-item">
-      <img src="https://mdbcdn.b-cdn.net/img/Photos/Slides/img%20(23).webp" class="d-block w-100" alt="Cliff Above a Stormy Sea"/>
-      <div class="carousel-caption d-none d-md-block">
-        <h5>Third slide label</h5>
-        <p>Praesent commodo cursus magna, vel scelerisque nisl consectetur.</p>
-      </div>
-    </div>
-  </div>
-  <!-- Inner -->
-
-  <!-- Controls -->
-  <button class="carousel-control-prev" type="button" data-mdb-target="#carouselBasicExample" data-mdb-slide="prev">
-    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-    <span class="visually-hidden">Previous</span>
-  </button>
-  <button class="carousel-control-next" type="button" data-mdb-target="#carouselBasicExample" data-mdb-slide="next">
-    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-    <span class="visually-hidden">Next</span>
-  </button>
-</div>
-<!-- Carousel wrapper -->
 </div>
 {% endblock %}

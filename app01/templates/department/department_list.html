@@ -1,0 +1,65 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-7 col-sm-4" >
+            <a class="btn btn-success" style="margin: 10px" href="/department/add" target="_blank">
+                <i class="bi bi-plus-circle-fill"></i>
+                添加部门
+            </a>
+            </div>
+            <div class="col-md-5 col-sm-8 ">
+                <form method="get">
+                <div class="d-flex flex-row">
+                    <input class="form-control me-2" type="search" name="q" value="{{ search_data }}" style="margin: 10px" placeholder="搜索部门名称" aria-label="Search">
+                    <select class="form-control me-2" name="club_id" style="margin: 10px; width: 150px">
+                        <option value="">全部社团</option>
+                        {% for club in clubs %}
+                        <option value="{{ club.club_id }}" {% if selected_club_id and selected_club_id|stringformat:"s" == club.club_id|stringformat:"s" %}selected{% endif %}>{{ club.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button class="btn btn-outline-success" type="submit" style="margin: 10px; width: 100px"><strong>搜索</strong></button>
+                </div>
+                </form>
+            </div>
+        </div>
+        <ul class="list-group">
+            <li class="list-group-item list-group-item-dark">
+                <i class="bi bi-calendar2-event-fill"></i>
+                <strong>部门列表</strong>
+            </li>
+            <li class="list-group-item">
+                <table class="table">
+                      <thead>
+                        <tr>
+                          <th scope="col">ID</th>
+                          <th scope="col">部门名称</th>
+                          <th scope="col">所属社团</th>
+                          <th scope="col">操作</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                      {% for obj in queryset %}
+                        <tr>
+                          <th scope="row">{{ obj.department_id }}</th>
+                          <td>{{ obj.name}}</td>
+                          <td>{{ obj.club.name|default:"未设置"}}</td>
+                          <td>
+                              <a class="btn btn-primary btn-sm" href="/department/{{ obj.department_id }}/edit">编辑</a>
+                              <a class="btn btn-danger btn-sm" href="/department/delete/?nid={{ obj.department_id }}">删除</a>
+                          </td>
+                        </tr>
+                      {% endfor %}
+                      </tbody>
+                    </table>
+            </li>
+        </ul>
+        <div style="display: flex; justify-content: center;">
+                    {{ page_nav_string }}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

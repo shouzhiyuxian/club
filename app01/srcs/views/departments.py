@@ -1,42 +1,27 @@
 from django.shortcuts import render, redirect
 
-from app01.models import Department, UserInfo, PhoneNumbers
+from app01.models import Department
 from app01.utils.page_nav import PageNav
-from app01.srcs.forms.form import NumModelForm, NumModelFormEdit, UserModelForm
 
+
+# 注意：此文件已废弃，请使用 app01.srcs.views.department 中的视图
+# 保留此文件仅用于向后兼容，避免导入错误
 
 def depart_list(request):
-    queryset = Department.objects.all()
-    content = {
-        "queryset": queryset,
-    }
-    return render(request, "departments/depart_list.html", content)
+    # 重定向到新的部门管理页面
+    return redirect("/department/list")
 
 
 def depart_add(request):
-    if request.method == "GET":
-        return render(request, "departments/depart_add.html", )
-    else:
-        new_title = request.POST.get("new_title")
-        Department.objects.create(title=new_title)
-        return redirect("/depart/list")
+    return redirect("/department/add")
 
 
 def depart_delete(req):
     nid = req.GET.get("nid")
+    from app01.models import Department
     Department.objects.filter(department_id=nid).delete()
-    return redirect("/depart/list")
+    return redirect("/department/list")
 
 
 def depart_edit(req, nid):
-    obj = Department.objects.filter(department_id=nid)
-    if req.method == "GET":
-        content = {
-            "department_id": obj.first().department_id,
-            "title": obj.first().title
-        }
-        return render(req, "departments/depart_edit.html", content)
-    else:
-        new_title = req.POST.get("new_title")
-        obj.update(title=new_title)
-        return redirect("/depart/list")
+    return redirect(f"/department/{nid}/edit")

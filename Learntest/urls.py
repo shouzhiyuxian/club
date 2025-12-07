@@ -16,40 +16,57 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from app01 import views
-from app01.srcs.views import departments, myadmin, number, user, account, task, order
+from app01.srcs.views import myadmin, account, club, member, activity, registration, department, role
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", views.index),
-    path("dbop", views.dbop),
-
-    path("depart/list", departments.depart_list),
-    path("depart/add", departments.depart_add),
-    path("depart/<int:nid>/edit/", departments.depart_edit),
-    path("depart/delete/", departments.depart_delete),
-
-    path("user/list", user.user_list),
-    path("user/add", user.user_add),
-    path("user/delete/", user.user_delete),
-    path("user/<nid>/edit/", user.user_edit),
-
-    path("numbers/list", number.number_list),
-    path("numbers/add", number.number_add),
-    path("numbers/<int:nid>/edit", number.number_edit),
-    path("numbers/delete/", number.number_delete),
-
+    
+    # 登录相关
+    path("login/", account.login),
+    path("logout/", account.logout),
+    
+    # 管理员相关
     path("myadmin/list", myadmin.myadmin_list),
     path("myadmin/add", myadmin.myadmin_add),
     path("myadmin/<nid>/edit/", myadmin.myadmin_edit),
     path("myadmin/delete/", myadmin.myadmin_delete),
     path("myadmin/<nid>/reset/", myadmin.myadmin_reset_pwd),
-
-    path("login/", account.login),
-    path("logout/", account.logout),
-
-    path("task/list", task.task_list),
-    path("task/ajax", task.task_ajax),
-    path("task/add", task.task_add),
-
-    path("order/list", order.order_list)
+    
+    # 社团管理
+    path("club/list", club.club_list),
+    path("club/add", club.club_add),
+    path("club/<int:nid>/edit/", club.club_edit),
+    path("club/delete/", club.club_delete),
+    
+    # 部门管理
+    path("department/list", department.department_list),
+    path("department/add", department.department_add),
+    path("department/<int:nid>/edit/", department.department_edit),
+    path("department/delete/", department.department_delete),
+    
+    # 角色管理
+    path("role/list", role.role_list),
+    path("role/add", role.role_add),
+    path("role/<int:nid>/edit/", role.role_edit),
+    path("role/delete/", role.role_delete),
+    
+    # 成员管理
+    path("member/list", member.member_list),
+    path("member/add", member.member_add),
+    path("member/<nid>/edit/", member.member_edit),
+    path("member/delete/", member.member_delete),
+    
+    # 活动管理
+    path("activity/list", activity.activity_list),
+    path("activity/add", activity.activity_add),
+    path("activity/<int:nid>/edit/", activity.activity_edit),
+    path("activity/<int:nid>/detail/", activity.activity_detail),
+    path("activity/delete/", activity.activity_delete),
+    
+    # 活动报名管理
+    path("registration/list", registration.registration_list),
+    path("registration/add", registration.registration_add),
+    path("registration/<int:nid>/edit/", registration.registration_edit),
+    path("registration/delete/", registration.registration_delete),
 ]

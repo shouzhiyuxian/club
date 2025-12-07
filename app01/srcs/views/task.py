@@ -1,28 +1,21 @@
+# 注意：Task 模型已被移除，此文件已废弃
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 
-from app01 import models
-from app01.utils.bootstrap_modelform import BootstrapModelForm
+# from app01 import models
+# from app01.utils.bootstrap_modelform import BootstrapModelForm
+# from app01.utils.page_nav import PageNav
 
-from app01.utils.page_nav import PageNav
 
-
-class TaskModelForm(BootstrapModelForm):
-    class Meta:
-        model = models.Task
-        fields = "__all__"
+# class TaskModelForm(BootstrapModelForm):
+#     class Meta:
+#         model = models.Task
+#         fields = "__all__"
 
 
 def task_list(request):
-    queryset = models.Task.objects.all().order_by("-id")
-    page_nav_obj = PageNav(request, queryset)
-    page_queryset = page_nav_obj.page_queryset
-    page_nav_string = page_nav_obj.get_html()
-    form = TaskModelForm()
-    content = {"form": form,
-               "queryset": page_queryset,
-               "page_nav_string": page_nav_string,}
-    return render(request, "task/task_list.html", content)
+    # Task 功能已移除
+    return HttpResponse("此功能已移除", status=404)
 
 import json
 from django.views.decorators.csrf import csrf_exempt

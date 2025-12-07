@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 
-from app01.models import Department, UserInfo, PhoneNumbers, MyAdmin
+from app01.models import MyAdmin
 from app01.utils.page_nav import PageNav
 from app01.srcs.forms.form import  MyadminForm, MyadminFormEdit ,MyadminFormReset
 

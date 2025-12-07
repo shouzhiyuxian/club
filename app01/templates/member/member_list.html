@@ -1,0 +1,77 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-7 col-sm-4" >
+            <a class="btn btn-success" style="margin: 10px" href="/member/add" target="_blank">
+                <i class="bi bi-plus-circle-fill"></i>
+                添加成员
+            </a>
+            </div>
+            <div class="col-md-5 col-sm-8 ">
+                <form method="get">
+                <div class="d-flex flex-row">
+                    <input class="form-control me-2" type="search" name="q" value="{{ search_data }}" style="margin: 10px" placeholder="搜索成员姓名" aria-label="Search">
+                    <select class="form-control me-2" name="club_id" style="margin: 10px; width: 150px">
+                        <option value="">全部社团</option>
+                        {% for club in clubs %}
+                        <option value="{{ club.club_id }}" {% if selected_club_id and selected_club_id|stringformat:"s" == club.club_id|stringformat:"s" %}selected{% endif %}>{{ club.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button class="btn btn-outline-success" type="submit" style="margin: 10px; width: 100px"><strong>搜索</strong></button>
+                </div>
+                </form>
+            </div>
+        </div>
+        <ul class="list-group">
+            <li class="list-group-item list-group-item-dark">
+                <i class="bi bi-calendar2-event-fill"></i>
+                <strong>成员列表</strong>
+            </li>
+            <li class="list-group-item">
+                <table class="table">
+                      <thead>
+                        <tr>
+                          <th scope="col">学号</th>
+                          <th scope="col">姓名</th>
+                          <th scope="col">性别</th>
+                          <th scope="col">年级</th>
+                          <th scope="col">专业</th>
+                          <th scope="col">所属社团</th>
+                          <th scope="col">所属部门</th>
+                          <th scope="col">角色</th>
+                          <th scope="col">状态</th>
+                          <th scope="col">操作</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                      {% for obj in queryset %}
+                        <tr>
+                          <th scope="row">{{ obj.member_id }}</th>
+                          <td>{{ obj.name}}</td>
+                          <td>{{ obj.get_gender_display|default:"未设置"}}</td>
+                          <td>{{ obj.get_grade_display|default:"未设置"}}</td>
+                          <td>{{ obj.major|default:"未设置"}}</td>
+                          <td>{{ obj.club.name|default:"未加入"}}</td>
+                          <td>{{ obj.department.name|default:"未分配"}}</td>
+                          <td>{{ obj.role.name|default:"未设置"}}</td>
+                          <td>{{ obj.get_status_display}}</td>
+                          <td>
+                              <a class="btn btn-primary btn-sm" href="/member/{{ obj.member_id }}/edit">编辑</a>
+                              <a class="btn btn-danger btn-sm" href="/member/delete/?nid={{ obj.member_id }}">删除</a>
+                          </td>
+                        </tr>
+                      {% endfor %}
+                      </tbody>
+                    </table>
+            </li>
+        </ul>
+        <div style="display: flex; justify-content: center;">
+                    {{ page_nav_string }}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

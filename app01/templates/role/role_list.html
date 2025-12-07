@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div>
+    <div class="container">
+        <div style="margin: 10px">
+            <a class="btn btn-success" href="/role/add" target="_blank">
+                <i class="bi bi-plus-circle-fill"></i>
+                添加角色
+            </a>
+        </div>
+        <ul class="list-group">
+            <li class="list-group-item list-group-item-dark">
+                <i class="bi bi-calendar2-event-fill"></i>
+                <strong>角色列表</strong>
+            </li>
+            <li class="list-group-item">
+                <table class="table">
+                      <thead>
+                        <tr>
+                          <th scope="col">ID</th>
+                          <th scope="col">角色名称</th>
+                          <th scope="col">级别</th>
+                          <th scope="col">描述</th>
+                          <th scope="col">操作</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                      {% for obj in queryset %}
+                        <tr>
+                          <th scope="row">{{ obj.role_id }}</th>
+                          <td>{{ obj.name}}</td>
+                          <td>{{ obj.get_level_display}}</td>
+                          <td>{{ obj.description|default:"无"}}</td>
+                          <td>
+                              <a class="btn btn-primary btn-sm" href="/role/{{ obj.role_id }}/edit">编辑</a>
+                              <a class="btn btn-danger btn-sm" href="/role/delete/?nid={{ obj.role_id }}">删除</a>
+                          </td>
+                        </tr>
+                      {% endfor %}
+                      </tbody>
+                    </table>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+

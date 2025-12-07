@@ -1,0 +1,74 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-7 col-sm-4" >
+            <a class="btn btn-success" style="margin: 10px" href="/activity/add" target="_blank">
+                <i class="bi bi-plus-circle-fill"></i>
+                添加活动
+            </a>
+            </div>
+            <div class="col-md-5 col-sm-8 ">
+                <form method="get">
+                <div class="d-flex flex-row">
+                    <input class="form-control me-2" type="search" name="q" value="{{ search_data }}" style="margin: 10px" placeholder="搜索活动名称" aria-label="Search">
+                    <select class="form-control me-2" name="club_id" style="margin: 10px; width: 150px">
+                        <option value="">全部社团</option>
+                        {% for club in clubs %}
+                        <option value="{{ club.club_id }}" {% if selected_club_id and selected_club_id|stringformat:"s" == club.club_id|stringformat:"s" %}selected{% endif %}>{{ club.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button class="btn btn-outline-success" type="submit" style="margin: 10px; width: 100px"><strong>搜索</strong></button>
+                </div>
+                </form>
+            </div>
+        </div>
+        <ul class="list-group">
+            <li class="list-group-item list-group-item-dark">
+                <i class="bi bi-calendar2-event-fill"></i>
+                <strong>活动列表</strong>
+            </li>
+            <li class="list-group-item">
+                <table class="table">
+                      <thead>
+                        <tr>
+                          <th scope="col">ID</th>
+                          <th scope="col">活动名称</th>
+                          <th scope="col">所属社团</th>
+                          <th scope="col">活动地点</th>
+                          <th scope="col">开始时间</th>
+                          <th scope="col">参与人数</th>
+                          <th scope="col">状态</th>
+                          <th scope="col">操作</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                      {% for obj in queryset %}
+                        <tr>
+                          <th scope="row">{{ obj.activity_id }}</th>
+                          <td>{{ obj.title}}</td>
+                          <td>{{ obj.club.name|default:"未设置"}}</td>
+                          <td>{{ obj.location|default:"未设置"}}</td>
+                          <td>{{ obj.start_time|default:"未设置"}}</td>
+                          <td>{{ obj.current_participants }}/{{ obj.max_participants|default:"不限"}}</td>
+                          <td>{{ obj.get_status_display}}</td>
+                          <td>
+                              <a class="btn btn-info btn-sm" href="/activity/{{ obj.activity_id }}/detail">详情</a>
+                              <a class="btn btn-primary btn-sm" href="/activity/{{ obj.activity_id }}/edit">编辑</a>
+                              <a class="btn btn-danger btn-sm" href="/activity/delete/?nid={{ obj.activity_id }}">删除</a>
+                          </td>
+                        </tr>
+                      {% endfor %}
+                      </tbody>
+                    </table>
+            </li>
+        </ul>
+        <div style="display: flex; justify-content: center;">
+                    {{ page_nav_string }}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
