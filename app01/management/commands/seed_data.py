@@ -79,7 +79,7 @@ class Command(BaseCommand):
                 Department.objects.get_or_create(
                     club=club,
                     name=f"{club.name[:2]}{name}",
-                    defaults={"description": f"{name}日常事务"},
+                    defaults={"description": f"{name}日常事务", "create_time": timezone.now()},
                 )
             created.extend(list(club.departments.all()))
         return created

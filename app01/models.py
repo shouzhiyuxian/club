@@ -11,7 +11,7 @@ class MyAdmin(models.Model):
 
     class Meta:
         verbose_name = "管理员"
-        db_table = "管理员表"
+        db_table = "myadmin"
 
     def __str__(self):
         return self.user_name
@@ -36,7 +36,7 @@ class Club(models.Model):
 
     class Meta:
         verbose_name = "社团"
-        db_table = "社团表"
+        db_table = "club"
 
     def __str__(self):
         return self.name
@@ -53,7 +53,7 @@ class Department(models.Model):
 
     class Meta:
         verbose_name = "部门"
-        db_table = "部门表"
+        db_table = "department"
 
     def __str__(self):
         return self.name
@@ -72,7 +72,7 @@ class Role(models.Model):
 
     class Meta:
         verbose_name = "角色"
-        db_table = "角色表"
+        db_table = "role"
 
     def __str__(self):
         return self.name
@@ -113,7 +113,7 @@ class Member(models.Model):
 
     class Meta:
         verbose_name = "成员"
-        db_table = "成员表"
+        db_table = "member"
 
     def __str__(self):
         return self.name
@@ -144,7 +144,7 @@ class Activity(models.Model):
 
     class Meta:
         verbose_name = "活动"
-        db_table = "活动表"
+        db_table = "activity"
 
     def __str__(self):
         return self.title
@@ -169,7 +169,7 @@ class ActivityRegistration(models.Model):
 
     class Meta:
         verbose_name = "活动报名"
-        db_table = "活动报名表"
+        db_table = "activity_registration"
         unique_together = [['activity', 'member']]  # 防止重复报名
 
     def __str__(self):
@@ -193,7 +193,7 @@ class Recruitment(models.Model):
 
     class Meta:
         verbose_name = "招新批次"
-        db_table = "招新批次表"
+        db_table = "recruitment"
 
     def __str__(self):
         return f"{self.club.name} - {self.title}"
@@ -228,7 +228,7 @@ class RecruitmentApplication(models.Model):
 
     class Meta:
         verbose_name = "招新报名"
-        db_table = "招新报名表"
+        db_table = "recruitment_application"
         unique_together = [["recruitment", "student_id"]]
 
     def __str__(self):
