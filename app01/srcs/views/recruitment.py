@@ -4,25 +4,32 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from app01.models import Recruitment, RecruitmentApplication, Club, Department, Role, Member
 from app01.utils.page_nav import PageNav
+from app01.utils.md5 import get_md5
 from app01.srcs.forms.form import RecruitmentModelForm, RecruitmentApplicationModelForm
 from app01.srcs.utils.export_excel import export_to_excel
+from app01.srcs.utils.role_helper import get_request_role
 import datetime
 
 
 def _recruitment_queryset(req):
-    """招新批次列表筛选（与 list 一致，供导出复用）"""
     search_data_dict = {}
     club_id = req.GET.get("club_id", "")
     q = req.GET.get("q", "")
-    if club_id:
+    role_type, club_id_role, _ = get_request_role(req)
+    if role_type == "president" and club_id_role:
+        search_data_dict["club_id"] = club_id_role
+    elif club_id:
         search_data_dict["club_id"] = club_id
     if q:
         search_data_dict["title__contains"] = q
-    return Recruitment.objects.filter(**search_data_dict).order_by("-create_time")
+    return Recruitment.objects.filter(**search_data_dict).order_by("recruitment_id")
 
 
 def recruitment_list(req):
-    """招新批次列表"""
+    """招新批次列表（社长仅见本社团招新）"""
+    role_type, club_id_role, _ = get_request_role(req)
+    if role_type == "member":
+        return redirect("/member/profile/")
     if req.GET.get("export") == "1":
         queryset = _recruitment_queryset(req)
         headers = ["招新ID", "社团", "批次名称", "开始日期", "结束日期", "状态", "创建时间"]
@@ -42,21 +49,32 @@ def recruitment_list(req):
     
     queryset = _recruitment_queryset(req)
     page_nav_obj = PageNav(req, queryset)
+    clubs = Club.objects.all() if role_type == "admin" else Club.objects.filter(club_id=club_id_role)
     content = {
         "queryset": page_nav_obj.page_queryset,
         "page_nav_string": page_nav_obj.get_html(),
-        "clubs": Club.objects.all(),
-        "selected_club_id": req.GET.get("club_id", ""),
+        "clubs": clubs,
+        "selected_club_id": str(club_id_role) if role_type == "president" else req.GET.get("club_id", ""),
         "search_data": req.GET.get("q", ""),
     }
     return render(req, "recruitment/recruitment_list.html", content)
 
 
 def recruitment_add(req):
+    """招新批次（社长仅能为本社团创建）"""
+    role_type, club_id_role, _ = get_request_role(req)
+    if role_type == "member":
+        return redirect("/member/profile/")
     if req.method == "GET":
-        return render(req, "recruitment/recruitment_add.html", {"form": RecruitmentModelForm()})
+        form = RecruitmentModelForm()
+        if role_type == "president" and club_id_role:
+            form.fields["club"].queryset = Club.objects.filter(club_id=club_id_role)
+            form.fields["club"].initial = Club.objects.filter(club_id=club_id_role).first()
+        return render(req, "recruitment/recruitment_add.html", {"form": form})
     form = RecruitmentModelForm(data=req.POST)
     if form.is_valid():
+        if role_type == "president" and club_id_role:
+            form.instance.club_id = club_id_role
         if form.instance.create_time is None:
             form.instance.create_time = datetime.datetime.now()
         form.save()
@@ -65,8 +83,13 @@ def recruitment_add(req):
 
 
 def recruitment_edit(req, nid):
+    role_type, club_id_role, _ = get_request_role(req)
+    if role_type == "member":
+        return redirect("/member/profile/")
     row = Recruitment.objects.filter(recruitment_id=nid).first()
     if not row:
+        return redirect("/recruitment/list")
+    if role_type == "president" and row.club_id != club_id_role:
         return redirect("/recruitment/list")
     if req.method == "GET":
         return render(req, "recruitment/recruitment_edit.html", {"form": RecruitmentModelForm(instance=row)})
@@ -78,13 +101,22 @@ def recruitment_edit(req, nid):
 
 
 def recruitment_delete(req):
+    role_type, club_id_role, _ = get_request_role(req)
+    if role_type == "member":
+        return redirect("/member/profile/")
     nid = req.GET.get("nid")
+    obj = Recruitment.objects.filter(recruitment_id=nid).first()
+    if obj and role_type == "president" and obj.club_id != club_id_role:
+        return redirect("/recruitment/list")
     Recruitment.objects.filter(recruitment_id=nid).delete()
     return redirect("/recruitment/list")
 
 
 def _application_queryset(req):
     search_data_dict = {}
+    role_type, club_id_role, _ = get_request_role(req)
+    if role_type == "president" and club_id_role:
+        search_data_dict["recruitment__club_id"] = club_id_role
     recruitment_id = req.GET.get("recruitment_id", "")
     status = req.GET.get("status", "")
     q = req.GET.get("q", "")
@@ -94,11 +126,14 @@ def _application_queryset(req):
         search_data_dict["status"] = status
     if q:
         search_data_dict["name__contains"] = q
-    return RecruitmentApplication.objects.filter(**search_data_dict).order_by("-apply_time")
+    return RecruitmentApplication.objects.filter(**search_data_dict).order_by("application_id")
 
 
 def application_list(req):
-    """招新报名列表"""
+    """招新报名列表（社长仅见本社团招新的报名）"""
+    role_type, club_id_role, _ = get_request_role(req)
+    if role_type == "member":
+        return redirect("/member/profile/")
     if req.GET.get("export") == "1":
         queryset = _application_queryset(req)
         headers = ["报名ID", "招新批次", "学号", "姓名", "性别", "年级", "专业", "手机", "邮箱", "申请部门", "状态", "申请时间", "备注"]
@@ -126,10 +161,11 @@ def application_list(req):
     
     queryset = _application_queryset(req)
     page_nav_obj = PageNav(req, queryset)
+    recruitments = (Recruitment.objects.filter(club_id=club_id_role) if role_type == "president" else Recruitment.objects.all()).order_by("recruitment_id")
     content = {
         "queryset": page_nav_obj.page_queryset,
         "page_nav_string": page_nav_obj.get_html(),
-        "recruitments": Recruitment.objects.all().order_by("-create_time"),
+        "recruitments": recruitments,
         "selected_recruitment_id": req.GET.get("recruitment_id", ""),
         "selected_status": req.GET.get("status", ""),
         "search_data": req.GET.get("q", ""),
@@ -138,12 +174,17 @@ def application_list(req):
 
 
 def application_add(req):
+    role_type, club_id_role, _ = get_request_role(req)
+    if role_type == "member":
+        return redirect("/member/profile/")
     if req.method == "GET":
         form = RecruitmentApplicationModelForm()
+        if role_type == "president" and club_id_role:
+            form.fields["recruitment"].queryset = Recruitment.objects.filter(club_id=club_id_role)
         recruitment_id = req.GET.get("recruitment_id")
         if recruitment_id:
             r = Recruitment.objects.filter(recruitment_id=recruitment_id).first()
-            if r:
+            if r and (role_type != "president" or r.club_id == club_id_role):
                 form.fields["recruitment"].initial = r
                 form.fields["apply_department"].queryset = Department.objects.filter(club=r.club)
         return render(req, "recruitment/application_add.html", {"form": form})
@@ -162,8 +203,13 @@ def application_add(req):
 
 
 def application_edit(req, nid):
+    role_type, club_id_role, _ = get_request_role(req)
+    if role_type == "member":
+        return redirect("/recruitment/applications/")
     row = RecruitmentApplication.objects.filter(application_id=nid).first()
     if not row:
+        return redirect("/recruitment/applications/")
+    if role_type == "president" and row.recruitment.club_id != club_id_role:
         return redirect("/recruitment/applications/")
     if req.method == "GET":
         form = RecruitmentApplicationModelForm(instance=row)
@@ -178,21 +224,32 @@ def application_edit(req, nid):
 
 
 def application_delete(req):
+    role_type, club_id_role, _ = get_request_role(req)
+    if role_type == "member":
+        return redirect("/member/profile/")
     nid = req.GET.get("nid")
+    obj = RecruitmentApplication.objects.filter(application_id=nid).first()
+    if obj and role_type == "president" and obj.recruitment.club_id != club_id_role:
+        return redirect("/recruitment/applications/")
     RecruitmentApplication.objects.filter(application_id=nid).delete()
     return redirect("/recruitment/applications/")
 
 
 def application_approve(req, nid):
-    """审核通过：创建正式成员并更新报名状态"""
+    """审核通过（社长仅能审核本社团招新报名）"""
+    role_type, club_id_role, _ = get_request_role(req)
+    if role_type == "member":
+        return redirect("/member/profile/")
     app = RecruitmentApplication.objects.filter(application_id=nid).first()
     if not app or app.status != 1:
+        return redirect("/recruitment/applications/")
+    if role_type == "president" and app.recruitment.club_id != club_id_role:
         return redirect("/recruitment/applications/")
     club = app.recruitment.club
     if not club:
         return redirect("/recruitment/applications/")
     # 普通成员角色
-    role = Role.objects.filter(level=5).first() or Role.objects.first()
+    role = Role.objects.filter(level=2).first() or Role.objects.first()
     if Member.objects.filter(member_id=app.student_id).exists():
         app.status = 3
         app.remark = (app.remark or "") + " [审核失败: 学号已存在]"
@@ -211,6 +268,7 @@ def application_approve(req, nid):
         role=role,
         join_time=datetime.datetime.now(),
         status=1,
+        password=get_md5("123456"),
     )
     app.status = 2
     app.save()

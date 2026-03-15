@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from app01 import views
-from app01.srcs.views import myadmin, account, club, member, activity, registration, department, role, recruitment
+from app01.srcs.views import myadmin, account, club, member, activity, registration, department, role, recruitment, member_portal
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -38,6 +38,7 @@ urlpatterns = [
     path("club/add", club.club_add),
     path("club/<int:nid>/edit/", club.club_edit),
     path("club/delete/", club.club_delete),
+    path("club/transfer/", club.club_transfer),
     
     # 部门管理
     path("department/list", department.department_list),
@@ -56,6 +57,7 @@ urlpatterns = [
     path("member/add", member.member_add),
     path("member/<nid>/edit/", member.member_edit),
     path("member/delete/", member.member_delete),
+    path("member/<nid>/reset/", member.member_reset_pwd),
     
     # 活动管理
     path("activity/list", activity.activity_list),
@@ -80,4 +82,10 @@ urlpatterns = [
     path("recruitment/applications/<int:nid>/edit/", recruitment.application_edit),
     path("recruitment/applications/delete/", recruitment.application_delete),
     path("recruitment/applications/<int:nid>/approve/", recruitment.application_approve),
+    # 成员端（普通成员/社长个人视角）
+    path("member/profile/", member_portal.member_profile),
+    path("member/change-password/", member_portal.member_change_password),
+    path("member/my-registrations/", member_portal.my_registrations),
+    path("member/activities/", member_portal.activities_can_register),
+    path("member/activities/<int:activity_id>/register/", member_portal.do_register),
 ]

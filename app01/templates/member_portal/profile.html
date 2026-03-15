@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<br>
+<div class="container">
+    <ul class="list-group">
+        <li class="list-group-item list-group-item-dark">
+            <i class="bi bi-person-circle"></i>
+            <strong>我的信息</strong>
+        </li>
+        <li class="list-group-item">
+            <form method="post">
+                {% csrf_token %}
+                {% for field in form %}
+                <div class="mb-3">
+                    <label>{{ field.label }}</label>
+                    {{ field }}
+                    <span style="color: red">{{ field.errors.0 }}</span>
+                </div>
+                {% endfor %}
+                <div style="margin: 10px">
+                    <button type="submit" class="btn btn-primary">保存</button>
+                    <a href="/member/change-password/" class="btn btn-outline-secondary">修改密码</a>
+                    <a href="/" class="btn btn-secondary">返回首页</a>
+                </div>
+            </form>
+        </li>
+    </ul>
+</div>
+{% endblock %}

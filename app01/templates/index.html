@@ -2,238 +2,245 @@
 {% load static %}
 {% block content %}
 <div class="container-fluid py-4">
-  <h4 class="mb-4"><i class="bi bi-speedometer2 me-2"></i>数据仪表盘</h4>
+  {% if role_type == "member" %}
+  {# 普通成员：仅个人相关概览，无社团/全局数据 #}
+  <h4 class="mb-4"><i class="bi bi-person-badge me-2"></i>个人中心</h4>
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small">所属社团</div>
+          <div class="fs-5 fw-bold">{% if member.club %}{{ member.club.name }}{% else %}未加入{% endif %}</div>
+          <a href="/member/profile/" class="text-decoration-none small mt-2 d-block">我的信息 <i class="bi bi-arrow-right"></i></a>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small">我的报名数</div>
+          <div class="fs-3 fw-bold">{{ my_registration_count|default:0 }}</div>
+          <a href="/member/my-registrations/" class="text-decoration-none small mt-2 d-block">查看报名 <i class="bi bi-arrow-right"></i></a>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small">可报名活动数</div>
+          <div class="fs-3 fw-bold">{{ can_register_count|default:0 }}</div>
+          <a href="/member/activities/" class="text-decoration-none small mt-2 d-block">去报名 <i class="bi bi-arrow-right"></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="text-muted">您仅可查看与本人相关的信息。如需管理社团，请使用社长或管理员账号登录。</p>
 
-  <!-- 统计卡片 -->
+  {% elif role_type == "president" %}
+  {# 社长：仅本社团仪表盘 #}
+  <h4 class="mb-4"><i class="bi bi-speedometer2 me-2"></i>本社团数据 · {{ club_name|default:"" }}</h4>
   <div class="row g-3 mb-4">
     <div class="col-sm-6 col-xl-3">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body d-flex align-items-center">
-          <div class="rounded-3 bg-primary bg-opacity-10 p-3 me-3">
-            <i class="bi bi-people-fill text-primary fs-4"></i>
-          </div>
+          <div class="rounded-3 bg-primary bg-opacity-10 p-3 me-3"><i class="bi bi-person-fill text-primary fs-4"></i></div>
           <div>
-            <div class="text-muted small">社团总数</div>
-            <div class="fs-3 fw-bold">{% if club_count %}{{ club_count }}{% else %}0{% endif %}</div>
+            <div class="text-muted small">成员数</div>
+            <div class="fs-3 fw-bold">{{ member_count|default:0 }}</div>
           </div>
         </div>
-        <div class="card-footer bg-transparent border-0 py-2">
-          <a href="/club/list" class="text-decoration-none small">查看列表 <i class="bi bi-arrow-right"></i></a>
-        </div>
+        <div class="card-footer bg-transparent border-0 py-2"><a href="/member/list" class="text-decoration-none small">成员管理 <i class="bi bi-arrow-right"></i></a></div>
       </div>
     </div>
     <div class="col-sm-6 col-xl-3">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body d-flex align-items-center">
-          <div class="rounded-3 bg-success bg-opacity-10 p-3 me-3">
-            <i class="bi bi-person-fill text-success fs-4"></i>
-          </div>
+          <div class="rounded-3 bg-info bg-opacity-10 p-3 me-3"><i class="bi bi-calendar-event-fill text-info fs-4"></i></div>
           <div>
-            <div class="text-muted small">成员总数</div>
-            <div class="fs-3 fw-bold">{% if member_count %}{{ member_count }}{% else %}0{% endif %}</div>
+            <div class="text-muted small">活动数</div>
+            <div class="fs-3 fw-bold">{{ activity_count|default:0 }}</div>
           </div>
         </div>
-        <div class="card-footer bg-transparent border-0 py-2">
-          <a href="/member/list" class="text-decoration-none small">查看列表 <i class="bi bi-arrow-right"></i></a>
-        </div>
+        <div class="card-footer bg-transparent border-0 py-2"><a href="/activity/list" class="text-decoration-none small">活动管理 <i class="bi bi-arrow-right"></i></a></div>
       </div>
     </div>
     <div class="col-sm-6 col-xl-3">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body d-flex align-items-center">
-          <div class="rounded-3 bg-info bg-opacity-10 p-3 me-3">
-            <i class="bi bi-calendar-event-fill text-info fs-4"></i>
-          </div>
+          <div class="rounded-3 bg-warning bg-opacity-10 p-3 me-3"><i class="bi bi-clipboard-check-fill text-warning fs-4"></i></div>
           <div>
-            <div class="text-muted small">活动总数</div>
-            <div class="fs-3 fw-bold">{% if activity_count %}{{ activity_count }}{% else %}0{% endif %}</div>
+            <div class="text-muted small">报名数</div>
+            <div class="fs-3 fw-bold">{{ registration_count|default:0 }}</div>
           </div>
         </div>
-        <div class="card-footer bg-transparent border-0 py-2">
-          <a href="/activity/list" class="text-decoration-none small">查看列表 <i class="bi bi-arrow-right"></i></a>
-        </div>
-      </div>
-    </div>
-    <div class="col-sm-6 col-xl-3">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body d-flex align-items-center">
-          <div class="rounded-3 bg-warning bg-opacity-10 p-3 me-3">
-            <i class="bi bi-clipboard-check-fill text-warning fs-4"></i>
-          </div>
-          <div>
-            <div class="text-muted small">报名总数</div>
-            <div class="fs-3 fw-bold">{% if registration_count %}{{ registration_count }}{% else %}0{% endif %}</div>
-          </div>
-        </div>
-        <div class="card-footer bg-transparent border-0 py-2">
-          <a href="/registration/list" class="text-decoration-none small">查看列表 <i class="bi bi-arrow-right"></i></a>
-        </div>
+        <div class="card-footer bg-transparent border-0 py-2"><a href="/registration/list" class="text-decoration-none small">活动报名 <i class="bi bi-arrow-right"></i></a></div>
       </div>
     </div>
   </div>
+  <div class="row g-4">
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 py-3"><h6 class="mb-0">活动状态分布</h6></div>
+        <div class="card-body"><div class="position-relative" style="height: 260px; width: 260px;"><canvas id="chartActivityStatus"></canvas></div></div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 py-3"><h6 class="mb-0">近6个月活动趋势</h6></div>
+        <div class="card-body"><div class="position-relative" style="height: 260px;"><canvas id="chartActivityTrend"></canvas></div></div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 py-3"><h6 class="mb-0">成员年级分布</h6></div>
+        <div class="card-body"><div class="position-relative" style="height: 260px;"><canvas id="chartGrade"></canvas></div></div>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+  (function(){
+    const statusLabels = {{ activity_status_labels|safe }};
+    const statusCounts = {{ activity_status_counts|safe }};
+    const monthLabels = {{ month_labels|safe }};
+    const monthCounts = {{ month_counts|safe }};
+    const gradeLabels = {{ grade_labels|safe }};
+    const gradeCounts = {{ grade_counts|safe }};
+    Chart.defaults.font.family = "'Segoe UI', 'Microsoft YaHei', sans-serif";
+    Chart.defaults.color = '#6c757d';
+    if (document.getElementById('chartActivityStatus')) {
+      new Chart(document.getElementById('chartActivityStatus'), { type: 'doughnut', data: { labels: statusLabels, datasets: [{ data: statusCounts, backgroundColor: ['#0d6efd','#198754','#6c757d','#dc3545'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
+    }
+    if (document.getElementById('chartActivityTrend')) {
+      new Chart(document.getElementById('chartActivityTrend'), { type: 'line', data: { labels: monthLabels, datasets: [{ label: '活动数', data: monthCounts, fill: true, borderColor: 'rgb(23, 162, 184)', backgroundColor: 'rgba(23, 162, 184, 0.1)', tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } } });
+    }
+    if (document.getElementById('chartGrade')) {
+      new Chart(document.getElementById('chartGrade'), { type: 'bar', data: { labels: gradeLabels, datasets: [{ label: '人数', data: gradeCounts, backgroundColor: 'rgba(25, 135, 84, 0.7)', borderColor: 'rgb(25, 135, 84)', borderWidth: 1 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } } } });
+    }
+  })();
+  </script>
 
-  <!-- 图表区域 -->
+  {% else %}
+  {# 管理员：全局仪表盘 + 可切换查看某社团 #}
+  <h4 class="mb-4"><i class="bi bi-speedometer2 me-2"></i>数据仪表盘</h4>
+  {% if clubs %}
+  <div class="mb-4">
+    <form method="get" class="d-inline-flex align-items-center gap-2">
+      <label class="form-label mb-0">查看某社团人员情况：</label>
+      <select name="club_id" class="form-select form-select-sm" style="width: 200px;">
+        <option value="">全部（全局统计）</option>
+        {% for c in clubs %}
+        <option value="{{ c.club_id }}" {% if selected_club_id and selected_club_id == c.club_id %}selected{% endif %}>{{ c.name }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-sm btn-outline-primary">查看</button>
+    </form>
+    {% if selected_club_id %}<span class="ms-2 text-muted">当前：{{ club_name|default:"" }}</span>{% endif %}
+  </div>
+  {% endif %}
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body d-flex align-items-center">
+          <div class="rounded-3 bg-primary bg-opacity-10 p-3 me-3"><i class="bi bi-people-fill text-primary fs-4"></i></div>
+          <div>
+            <div class="text-muted small">{% if selected_club_id %}本社团成员数{% else %}社团总数{% endif %}</div>
+            <div class="fs-3 fw-bold">{% if selected_club_id %}{{ member_count|default:0 }}{% else %}{{ club_count|default:0 }}{% endif %}</div>
+          </div>
+        </div>
+        <div class="card-footer bg-transparent border-0 py-2"><a href="/club/list" class="text-decoration-none small">社团管理 <i class="bi bi-arrow-right"></i></a></div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body d-flex align-items-center">
+          <div class="rounded-3 bg-success bg-opacity-10 p-3 me-3"><i class="bi bi-person-fill text-success fs-4"></i></div>
+          <div>
+            <div class="text-muted small">成员总数</div>
+            <div class="fs-3 fw-bold">{% if member_count is not None %}{{ member_count }}{% else %}0{% endif %}</div>
+          </div>
+        </div>
+        <div class="card-footer bg-transparent border-0 py-2"><a href="/member/list" class="text-decoration-none small">成员管理 <i class="bi bi-arrow-right"></i></a></div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body d-flex align-items-center">
+          <div class="rounded-3 bg-info bg-opacity-10 p-3 me-3"><i class="bi bi-calendar-event-fill text-info fs-4"></i></div>
+          <div>
+            <div class="text-muted small">活动总数</div>
+            <div class="fs-3 fw-bold">{% if activity_count is not None %}{{ activity_count }}{% else %}0{% endif %}</div>
+          </div>
+        </div>
+        <div class="card-footer bg-transparent border-0 py-2"><a href="/activity/list" class="text-decoration-none small">活动管理 <i class="bi bi-arrow-right"></i></a></div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body d-flex align-items-center">
+          <div class="rounded-3 bg-warning bg-opacity-10 p-3 me-3"><i class="bi bi-clipboard-check-fill text-warning fs-4"></i></div>
+          <div>
+            <div class="text-muted small">报名总数</div>
+            <div class="fs-3 fw-bold">{% if registration_count is not None %}{{ registration_count }}{% else %}0{% endif %}</div>
+          </div>
+        </div>
+        <div class="card-footer bg-transparent border-0 py-2"><a href="/registration/list" class="text-decoration-none small">活动报名 <i class="bi bi-arrow-right"></i></a></div>
+      </div>
+    </div>
+  </div>
   <div class="row g-4">
     <div class="col-lg-8">
       <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-0 py-3">
-          <h6 class="mb-0">各社团成员数</h6>
-        </div>
-        <div class="card-body">
-          <div class="position-relative" style="height: 280px;">
-            <canvas id="chartClubMembers"></canvas>
-          </div>
-        </div>
+        <div class="card-header bg-white border-0 py-3"><h6 class="mb-0">{% if selected_club_id %}本社团成员数{% else %}各社团成员数{% endif %}</h6></div>
+        <div class="card-body"><div class="position-relative" style="height: 280px;"><canvas id="chartClubMembers"></canvas></div></div>
       </div>
     </div>
     <div class="col-lg-4">
       <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-0 py-3">
-          <h6 class="mb-0">活动状态分布</h6>
-        </div>
-        <div class="card-body d-flex align-items-center justify-content-center">
-          <div class="position-relative" style="height: 260px; width: 260px;">
-            <canvas id="chartActivityStatus"></canvas>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-lg-6">
-      <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-0 py-3">
-          <h6 class="mb-0">近6个月活动趋势</h6>
-        </div>
-        <div class="card-body">
-          <div class="position-relative" style="height: 260px;">
-            <canvas id="chartActivityTrend"></canvas>
-          </div>
-        </div>
+        <div class="card-header bg-white border-0 py-3"><h6 class="mb-0">活动状态分布</h6></div>
+        <div class="card-body"><div class="position-relative" style="height: 260px; width: 260px;"><canvas id="chartActivityStatus"></canvas></div></div>
       </div>
     </div>
     <div class="col-lg-6">
       <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-0 py-3">
-          <h6 class="mb-0">成员年级分布</h6>
-        </div>
-        <div class="card-body">
-          <div class="position-relative" style="height: 260px;">
-            <canvas id="chartGrade"></canvas>
-          </div>
-        </div>
+        <div class="card-header bg-white border-0 py-3"><h6 class="mb-0">近6个月活动趋势</h6></div>
+        <div class="card-body"><div class="position-relative" style="height: 260px;"><canvas id="chartActivityTrend"></canvas></div></div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 py-3"><h6 class="mb-0">成员年级分布</h6></div>
+        <div class="card-body"><div class="position-relative" style="height: 260px;"><canvas id="chartGrade"></canvas></div></div>
       </div>
     </div>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+  (function() {
+    const clubLabels = {{ club_labels|default:"[]"|safe }};
+    const clubCounts = {{ club_member_counts|default:"[]"|safe }};
+    const statusLabels = {{ activity_status_labels|default:"[]"|safe }};
+    const statusCounts = {{ activity_status_counts|default:"[]"|safe }};
+    const monthLabels = {{ month_labels|default:"[]"|safe }};
+    const monthCounts = {{ month_counts|default:"[]"|safe }};
+    const gradeLabels = {{ grade_labels|default:"[]"|safe }};
+    const gradeCounts = {{ grade_counts|default:"[]"|safe }};
+    Chart.defaults.font.family = "'Segoe UI', 'Microsoft YaHei', sans-serif";
+    Chart.defaults.color = '#6c757d';
+    if (document.getElementById('chartClubMembers')) {
+      new Chart(document.getElementById('chartClubMembers'), { type: 'bar', data: { labels: clubLabels, datasets: [{ label: '成员数', data: clubCounts, backgroundColor: 'rgba(13, 110, 253, 0.7)', borderColor: 'rgb(13, 110, 253)', borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { maxRotation: 45, minRotation: 30 } } } });
+    }
+    if (document.getElementById('chartActivityStatus')) {
+      new Chart(document.getElementById('chartActivityStatus'), { type: 'doughnut', data: { labels: statusLabels, datasets: [{ data: statusCounts, backgroundColor: ['#0d6efd','#198754','#6c757d','#dc3545'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
+    }
+    if (document.getElementById('chartActivityTrend')) {
+      new Chart(document.getElementById('chartActivityTrend'), { type: 'line', data: { labels: monthLabels, datasets: [{ label: '活动数', data: monthCounts, fill: true, borderColor: 'rgb(23, 162, 184)', backgroundColor: 'rgba(23, 162, 184, 0.1)', tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } } });
+    }
+    if (document.getElementById('chartGrade')) {
+      new Chart(document.getElementById('chartGrade'), { type: 'bar', data: { labels: gradeLabels, datasets: [{ label: '人数', data: gradeCounts, backgroundColor: 'rgba(25, 135, 84, 0.7)', borderColor: 'rgb(25, 135, 84)', borderWidth: 1 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } } } });
+    }
+  })();
+  </script>
+  {% endif %}
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script>
-(function() {
-  const clubLabels = {{ club_labels|safe }};
-  const clubCounts = {{ club_member_counts|safe }};
-  const statusLabels = {{ activity_status_labels|safe }};
-  const statusCounts = {{ activity_status_counts|safe }};
-  const monthLabels = {{ month_labels|safe }};
-  const monthCounts = {{ month_counts|safe }};
-  const gradeLabels = {{ grade_labels|safe }};
-  const gradeCounts = {{ grade_counts|safe }};
-
-  Chart.defaults.font.family = "'Segoe UI', 'Microsoft YaHei', sans-serif";
-  Chart.defaults.color = '#6c757d';
-
-  if (document.getElementById('chartClubMembers')) {
-    new Chart(document.getElementById('chartClubMembers'), {
-      type: 'bar',
-      data: {
-        labels: clubLabels,
-        datasets: [{
-          label: '成员数',
-          data: clubCounts,
-          backgroundColor: 'rgba(13, 110, 253, 0.7)',
-          borderColor: 'rgb(13, 110, 253)',
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: { beginAtZero: true, ticks: { stepSize: 1 } },
-          x: { maxRotation: 45, minRotation: 30 }
-        }
-      }
-    });
-  }
-
-  if (document.getElementById('chartActivityStatus')) {
-    new Chart(document.getElementById('chartActivityStatus'), {
-      type: 'doughnut',
-      data: {
-        labels: statusLabels,
-        datasets: [{
-          data: statusCounts,
-          backgroundColor: ['#0d6efd', '#198754', '#6c757d', '#dc3545'],
-          borderWidth: 0
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom' } }
-      }
-    });
-  }
-
-  if (document.getElementById('chartActivityTrend')) {
-    new Chart(document.getElementById('chartActivityTrend'), {
-      type: 'line',
-      data: {
-        labels: monthLabels,
-        datasets: [{
-          label: '活动数',
-          data: monthCounts,
-          fill: true,
-          borderColor: 'rgb(23, 162, 184)',
-          backgroundColor: 'rgba(23, 162, 184, 0.1)',
-          tension: 0.3
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: { beginAtZero: true, ticks: { stepSize: 1 } }
-        }
-      }
-    });
-  }
-
-  if (document.getElementById('chartGrade')) {
-    new Chart(document.getElementById('chartGrade'), {
-      type: 'bar',
-      data: {
-        labels: gradeLabels,
-        datasets: [{
-          label: '人数',
-          data: gradeCounts,
-          backgroundColor: 'rgba(25, 135, 84, 0.7)',
-          borderColor: 'rgb(25, 135, 84)',
-          borderWidth: 1
-        }]
-      },
-      options: {
-        indexAxis: 'y',
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { beginAtZero: true, ticks: { stepSize: 1 } }
-        }
-      }
-    });
-  }
-})();
-</script>
 {% endblock %}

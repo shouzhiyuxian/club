@@ -1,17 +1,23 @@
 from django.shortcuts import render, redirect
-from app01.models import Club
+from app01.models import Club, Member, Role
 from app01.utils.page_nav import PageNav
 from app01.srcs.forms.form import ClubModelForm
 from app01.srcs.utils.export_excel import export_to_excel
+from app01.srcs.utils.role_helper import get_request_role
 
 
 def club_list(req):
-    """社团列表"""
+    """社团列表（社长仅见本社团）"""
+    role_type, club_id_role, _ = get_request_role(req)
+    if role_type == "member":
+        return redirect("/member/profile/")
     search_data_dict = {}
     search_data = req.GET.get("q", "")
     if search_data:
         search_data_dict["name__contains"] = search_data
-    queryset = Club.objects.filter(**search_data_dict).order_by("-create_time")
+    if role_type == "president" and club_id_role:
+        search_data_dict["club_id"] = club_id_role
+    queryset = Club.objects.filter(**search_data_dict).order_by("club_id")
     
     if req.GET.get("export") == "1":
         status_map = {1: "正常", 2: "暂停", 3: "解散"}
@@ -29,7 +35,9 @@ def club_list(req):
 
 
 def club_add(req):
-    """添加社团"""
+    """添加社团（仅管理员）"""
+    if get_request_role(req)[0] != "admin":
+        return redirect("/club/list")
     if req.method == "GET":
         form = ClubModelForm()
         return render(req, "club/club_add.html", {"form": form})
@@ -43,15 +51,22 @@ def club_add(req):
 
 
 def club_delete(req):
-    """删除社团"""
+    """删除社团（仅管理员）"""
+    if get_request_role(req)[0] != "admin":
+        return redirect("/club/list")
     nid = req.GET.get("nid")
     Club.objects.filter(club_id=nid).delete()
     return redirect("/club/list")
 
 
 def club_edit(req, nid):
-    """编辑社团"""
+    """编辑社团（管理员或社长仅可编辑本社团）"""
+    role_type, club_id_role, _ = get_request_role(req)
+    if role_type == "member":
+        return redirect("/member/profile/")
     row_obj = Club.objects.filter(club_id=nid).first()
+    if row_obj and role_type == "president" and row_obj.club_id != club_id_role:
+        return redirect("/club/list")
     if req.method == "GET":
         form = ClubModelForm(instance=row_obj)
         return render(req, "club/club_edit.html", {"form": form})
@@ -61,4 +76,55 @@ def club_edit(req, nid):
         form.save()
         return redirect("/club/list")
     return render(req, "club/club_edit.html", {"form": form})
+
+
+def club_transfer(req):
+    """社长转让：将社长身份转让给本社团另一成员（仅社长可操作）"""
+    role_type, club_id_role, member_id = get_request_role(req)
+    if role_type != "president" or not club_id_role or not member_id:
+        return redirect("/")
+    current = Member.objects.filter(member_id=member_id, club_id=club_id_role).first()
+    club = Club.objects.filter(club_id=club_id_role).first()
+    if not current or not club or not current.role or current.role.level != 1:
+        return redirect("/club/list")
+    # 本社团其他正常成员（排除自己）
+    candidates = Member.objects.filter(
+        club_id=club_id_role,
+        status=1,
+    ).exclude(member_id=member_id).order_by("member_id")
+    if req.method == "GET":
+        return render(req, "club/club_transfer.html", {
+            "club": club,
+            "candidates": candidates,
+            "current_name": current.name,
+        })
+    to_member_id = req.POST.get("to_member_id", "").strip()
+    if not to_member_id:
+        return render(req, "club/club_transfer.html", {
+            "club": club,
+            "candidates": candidates,
+            "current_name": current.name,
+            "error": "请选择要转让的成员",
+        })
+    to_member = Member.objects.filter(member_id=to_member_id, club_id=club_id_role).first()
+    if not to_member:
+        return redirect("/club/transfer/")
+    role_president = Role.objects.filter(level=1).first()
+    role_member = Role.objects.filter(level=2).first()
+    if not role_president or not role_member:
+        return redirect("/club/list")
+    # 新社长
+    to_member.role = role_president
+    to_member.save(update_fields=["role_id"])
+    # 原社长改为普通成员
+    current.role = role_member
+    current.save(update_fields=["role_id"])
+    # 更新社团表的社长姓名
+    club.president = to_member.name
+    club.save(update_fields=["president"])
+    # 当前登录者变为普通成员视角
+    req.session["info"]["type"] = "member"
+    req.session["info"]["role_level"] = 2
+    req.session.modified = True
+    return redirect("/club/list")
 

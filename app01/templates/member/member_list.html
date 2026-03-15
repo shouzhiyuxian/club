@@ -64,6 +64,9 @@
                           <td>{{ obj.get_status_display}}</td>
                           <td>
                               <a class="btn btn-primary btn-sm" href="/member/{{ obj.member_id }}/edit">编辑</a>
+                              {% if request.session.info.type == "admin" %}
+                              <a class="btn btn-warning btn-sm" href="/member/{{ obj.member_id }}/reset/">重置密码</a>
+                              {% endif %}
                               <a class="btn btn-danger btn-sm" href="/member/delete/?nid={{ obj.member_id }}">删除</a>
                           </td>
                         </tr>

@@ -65,12 +65,9 @@ class Role(models.Model):
     name = models.CharField(verbose_name="角色名称", max_length=50, null=False, blank=False)
     level_choices = (
         (1, "社长"),
-        (2, "副社长"),
-        (3, "部长"),
-        (4, "副部长"),
-        (5, "普通成员"),
+        (2, "普通成员"),
     )
-    level = models.SmallIntegerField(verbose_name="级别", choices=level_choices, default=5)
+    level = models.SmallIntegerField(verbose_name="级别", choices=level_choices, default=2)
     description = models.TextField(verbose_name="角色描述", null=True, blank=True)
 
     class Meta:
@@ -112,6 +109,7 @@ class Member(models.Model):
     )
     status = models.SmallIntegerField(verbose_name="状态", choices=status_choices, default=1)
     remark = models.TextField(verbose_name="备注", null=True, blank=True)
+    password = models.CharField(verbose_name="登录密码", max_length=64, null=True, blank=True)
 
     class Meta:
         verbose_name = "成员"

@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<br>
+<div class="container">
+    <ul class="list-group">
+        <li class="list-group-item list-group-item-dark">
+            <i class="bi bi-person-gear"></i>
+            <strong>转让社长</strong>
+        </li>
+        <li class="list-group-item">
+            <p class="text-muted">将「{{ club.name }}」的社长身份转让给以下成员，转让后您将变为普通成员。</p>
+            {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label">选择新社长</label>
+                    <select name="to_member_id" class="form-select" required>
+                        <option value="">-- 请选择 --</option>
+                        {% for m in candidates %}
+                        <option value="{{ m.member_id }}">{{ m.name }}（{{ m.member_id }}）{% if m.role %} - {{ m.role.name }}{% endif %}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% if not candidates %}
+                <p class="text-warning">当前没有可转让的其他成员。</p>
+                {% else %}
+                <div class="mb-3">
+                    <button type="submit" class="btn btn-warning">确认转让</button>
+                    <a href="/club/list" class="btn btn-secondary">取消</a>
+                </div>
+                {% endif %}
+            </form>
+        </li>
+    </ul>
+</div>
+{% endblock %}

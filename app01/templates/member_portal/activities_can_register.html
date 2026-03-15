@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <ul class="list-group">
+        <li class="list-group-item list-group-item-dark">
+            <i class="bi bi-calendar-plus"></i>
+            <strong>可报名活动</strong>
+            <span class="text-muted small">（本社团 · 报名中 · 未报名）</span>
+        </li>
+        <li class="list-group-item">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>活动名称</th>
+                        <th>地点</th>
+                        <th>开始时间</th>
+                        <th>人数</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for obj in queryset %}
+                    <tr>
+                        <td>{{ obj.title }}</td>
+                        <td>{{ obj.location|default:"-" }}</td>
+                        <td>{{ obj.start_time|default:"-" }}</td>
+                        <td>{{ obj.current_participants }}/{{ obj.max_participants|default:"不限" }}</td>
+                        <td>
+                            <a class="btn btn-success btn-sm" href="/member/activities/{{ obj.activity_id }}/register/">报名</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-muted">暂无可报名活动</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </li>
+    </ul>
+    <p class="mt-3">
+        <a href="/member/my-registrations/" class="btn btn-outline-primary">我的报名</a>
+        <a href="/member/profile/" class="btn btn-outline-secondary">我的信息</a>
+        <a href="/" class="btn btn-secondary">首页</a>
+    </p>
+</div>
+{% endblock %}

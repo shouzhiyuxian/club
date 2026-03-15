@@ -25,33 +25,38 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        {% if request.session.info %}
         <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="/">仪表盘</a>
+          <a class="nav-link" href="/">仪表盘</a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/club/list">社团管理</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/department/list">部门管理</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/member/list">成员管理</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/activity/list">活动管理</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/registration/list">活动报名</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/recruitment/list">招新管理</a>
-        </li>
+        {% if request.session.info.type == "admin" %}
+        <li class="nav-item"><a class="nav-link" href="/club/list">社团管理</a></li>
+        <li class="nav-item"><a class="nav-link" href="/department/list">部门管理</a></li>
+        <li class="nav-item"><a class="nav-link" href="/member/list">成员管理</a></li>
+        <li class="nav-item"><a class="nav-link" href="/activity/list">活动管理</a></li>
+        <li class="nav-item"><a class="nav-link" href="/registration/list">活动报名</a></li>
+        <li class="nav-item"><a class="nav-link" href="/recruitment/list">招新管理</a></li>
+        {% elif request.session.info.type == "president" %}
+        <li class="nav-item"><a class="nav-link" href="/club/list">本社团</a></li>
+        <li class="nav-item"><a class="nav-link" href="/club/transfer/">转让社长</a></li>
+        <li class="nav-item"><a class="nav-link" href="/member/list">成员管理</a></li>
+        <li class="nav-item"><a class="nav-link" href="/activity/list">活动管理</a></li>
+        <li class="nav-item"><a class="nav-link" href="/registration/list">活动报名</a></li>
+        <li class="nav-item"><a class="nav-link" href="/recruitment/list">招新管理</a></li>
+        {% else %}
+        <li class="nav-item"><a class="nav-link" href="/member/profile/">我的信息</a></li>
+        <li class="nav-item"><a class="nav-link" href="/member/my-registrations/">我的报名</a></li>
+        <li class="nav-item"><a class="nav-link" href="/member/activities/">可报名活动</a></li>
+        {% endif %}
+        {% endif %}
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               {% if request.session.info.name %}
               {{ request.session.info.name }}
-              {% else %}
-                  请登录
+              {% if request.session.info.type == "admin" %}<span class="badge bg-secondary ms-1">管理员</span>{% endif %}
+              {% if request.session.info.type == "president" %}<span class="badge bg-primary ms-1">社长</span>{% endif %}
+              {% if request.session.info.type == "member" %}<span class="badge bg-info ms-1">成员</span>{% endif %}
+              {% else %}请登录
               {% endif %}
           </a>
           <ul class="dropdown-menu">
@@ -60,8 +65,10 @@
                 {% else %}
             <li><a class="dropdown-item" href="/logout/">注销</a></li>
                 {% endif %}
+                {% if request.session.info.type == "admin" %}
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item" href="/myadmin/list">管理员账户</a></li>
+                {% endif %}
           </ul>
         </li>
       </ul>

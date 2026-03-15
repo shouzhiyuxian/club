@@ -42,18 +42,9 @@ class Command(BaseCommand):
         self.stdout.write("已清空活动报名、活动、成员、部门、社团数据。")
 
     def _ensure_roles(self):
-        defaults = [
-            ("社长", 1, "社团负责人"),
-            ("副社长", 2, "协助社长"),
-            ("部长", 3, "部门负责人"),
-            ("副部长", 4, "协助部长"),
-            ("普通成员", 5, "一般成员"),
-        ]
-        for name, level, desc in defaults:
-            Role.objects.get_or_create(
-                name=name,
-                defaults={"level": level, "description": desc},
-            )
+        """仅两种角色：社长、普通成员（系统身份为管理员/社长/成员）"""
+        for name, level, desc in [("社长", 1, "社团负责人"), ("普通成员", 2, "成员")]:
+            Role.objects.get_or_create(name=name, defaults={"level": level, "description": desc})
 
     def _create_clubs(self):
         data = [
@@ -119,13 +110,11 @@ class Command(BaseCommand):
                 phone = "138" + "".join([str(random.randint(0, 9)) for _ in range(8)])
                 email = f"{mid}@student.edu.cn"
                 dept = random.choice(depts) if depts else None
-                # 社长/副社长少量，其余角色随机
+                # 每社团一名社长，其余为普通成员
                 if j == 0 and not Member.objects.filter(club=club, role__level=1).exists():
                     role = next((r for r in roles if r.level == 1), roles[-1])
-                elif j == 1 and not Member.objects.filter(club=club, role__level=2).exists():
-                    role = next((r for r in roles if r.level == 2), roles[-1])
                 else:
-                    role = random.choice(roles[2:])  # 部长、副部长、普通成员
+                    role = next((r for r in roles if r.level == 2), roles[-1])
                 join_delta = datetime.timedelta(days=random.randint(30, 400))
                 join_time = timezone.now() - join_delta
                 m = Member.objects.create(
