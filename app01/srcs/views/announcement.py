@@ -63,15 +63,18 @@ def announcement_add(request):
 
     form = AnnouncementModelForm(data=request.POST)
     if form.is_valid():
-        # 设置发布者
-        admin_id = request.session.get("info", {}).get("id")
-        if admin_id:
-            form.instance.publisher_id = admin_id
-        
+        # 发布者：仅管理员有 MyAdmin 账号，社长的 session id 是成员 id 不能填到 publisher
+        if role == "admin":
+            admin_id = request.session.get("info", {}).get("id")
+            if admin_id:
+                form.instance.publisher_id = admin_id
+        else:
+            form.instance.publisher_id = None  # 社长发布不填发布者（publisher 外键是 MyAdmin）
+
         # 社长发布的公告自动绑定到本社团
         if role == "president":
             form.instance.club_id = club_id
-        
+
         form.save()
         return redirect("/announcement/list")
     return render(request, "announcement/add.html", {"form": form, "role": role, "club_id": club_id})
