@@ -1,0 +1,91 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-7 col-sm-4">
+                <a class="btn btn-success" style="margin: 10px" href="/recruitment/applications/add/">
+                    <i class="bi bi-plus-circle-fill"></i>
+                    添加报名
+                </a>
+                <a class="btn btn-outline-secondary" style="margin: 10px" href="/recruitment/list">
+                    <i class="bi bi-megaphone"></i>
+                    招新批次
+                </a>
+                <a class="btn btn-outline-secondary" style="margin: 10px" href="/recruitment/applications/?{{ request.GET.urlencode }}&export=1">
+                    <i class="bi bi-download"></i>
+                    导出 Excel
+                </a>
+            </div>
+            <div class="col-md-5 col-sm-8">
+                <form method="get">
+                    <div class="d-flex flex-row flex-wrap">
+                        <input class="form-control me-2" type="search" name="q" value="{{ search_data }}" style="margin: 10px; width: 120px" placeholder="姓名">
+                        <select class="form-control me-2" name="recruitment_id" style="margin: 10px; width: 160px">
+                            <option value="">全部批次</option>
+                            {% for r in recruitments %}
+                            <option value="{{ r.recruitment_id }}" {% if selected_recruitment_id and selected_recruitment_id|stringformat:"s" == r.recruitment_id|stringformat:"s" %}selected{% endif %}>{{ r.club.name }} - {{ r.title }}</option>
+                            {% endfor %}
+                        </select>
+                        <select class="form-control me-2" name="status" style="margin: 10px; width: 100px">
+                            <option value="">全部状态</option>
+                            <option value="1" {% if selected_status == "1" %}selected{% endif %}>待审核</option>
+                            <option value="2" {% if selected_status == "2" %}selected{% endif %}>已通过</option>
+                            <option value="3" {% if selected_status == "3" %}selected{% endif %}>已拒绝</option>
+                        </select>
+                        <button class="btn btn-outline-success" type="submit" style="margin: 10px; width: 80px"><strong>筛选</strong></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <ul class="list-group">
+            <li class="list-group-item list-group-item-dark">
+                <i class="bi bi-person-plus-fill"></i>
+                <strong>招新报名列表</strong>
+            </li>
+            <li class="list-group-item">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">报名ID</th>
+                            <th scope="col">批次</th>
+                            <th scope="col">学号</th>
+                            <th scope="col">姓名</th>
+                            <th scope="col">年级</th>
+                            <th scope="col">申请部门</th>
+                            <th scope="col">状态</th>
+                            <th scope="col">申请时间</th>
+                            <th scope="col">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for obj in queryset %}
+                        <tr>
+                            <th scope="row">{{ obj.application_id }}</th>
+                            <td>{{ obj.recruitment.club.name }} - {{ obj.recruitment.title }}</td>
+                            <td>{{ obj.student_id }}</td>
+                            <td>{{ obj.name }}</td>
+                            <td>{{ obj.get_grade_display|default:"-" }}</td>
+                            <td>{{ obj.apply_department.name|default:"-" }}</td>
+                            <td>{{ obj.get_status_display }}</td>
+                            <td>{{ obj.apply_time }}</td>
+                            <td>
+                                {% if obj.status == 1 %}
+                                <a class="btn btn-success btn-sm" href="/recruitment/applications/{{ obj.application_id }}/approve/">通过</a>
+                                {% endif %}
+                                <a class="btn btn-primary btn-sm" href="/recruitment/applications/{{ obj.application_id }}/edit/">编辑</a>
+                                <a class="btn btn-danger btn-sm" href="/recruitment/applications/delete/?nid={{ obj.application_id }}">删除</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </li>
+        </ul>
+        <div style="display: flex; justify-content: center;">
+            {{ page_nav_string }}
+        </div>
+    </div>
+</div>
+{% endblock %}

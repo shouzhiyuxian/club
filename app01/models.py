@@ -177,3 +177,62 @@ class ActivityRegistration(models.Model):
     def __str__(self):
         return f"{self.member.name} - {self.activity.title}"
 
+
+class Recruitment(models.Model):
+    """招新批次表"""
+    recruitment_id = models.BigAutoField(primary_key=True, verbose_name="招新ID")
+    club = models.ForeignKey(to="Club", to_field="club_id", related_name="recruitments",
+                            verbose_name="所属社团", null=False, blank=False, on_delete=models.CASCADE)
+    title = models.CharField(verbose_name="批次名称", max_length=100, null=False, blank=False)
+    start_date = models.DateField(verbose_name="开始日期", null=True, blank=True)
+    end_date = models.DateField(verbose_name="结束日期", null=True, blank=True)
+    status_choices = (
+        (1, "报名中"),
+        (2, "已结束"),
+    )
+    status = models.SmallIntegerField(verbose_name="状态", choices=status_choices, default=1)
+    create_time = models.DateTimeField(verbose_name="创建时间", null=True, blank=True, default=datetime.datetime.now)
+
+    class Meta:
+        verbose_name = "招新批次"
+        db_table = "招新批次表"
+
+    def __str__(self):
+        return f"{self.club.name} - {self.title}"
+
+
+class RecruitmentApplication(models.Model):
+    """招新报名表"""
+    application_id = models.BigAutoField(primary_key=True, verbose_name="报名ID")
+    recruitment = models.ForeignKey(to="Recruitment", to_field="recruitment_id", related_name="applications",
+                                    verbose_name="招新批次", null=False, blank=False, on_delete=models.CASCADE)
+    student_id = models.CharField(verbose_name="学号", max_length=30, null=False, blank=False)
+    name = models.CharField(verbose_name="姓名", max_length=30, null=False, blank=False)
+    gender_choices = ((1, "男"), (2, "女"))
+    gender = models.SmallIntegerField(verbose_name="性别", choices=gender_choices, null=True, blank=True)
+    grade_choices = (
+        (1, "大一"), (2, "大二"), (3, "大三"), (4, "大四"), (5, "研究生"),
+    )
+    grade = models.SmallIntegerField(verbose_name="年级", choices=grade_choices, null=True, blank=True)
+    major = models.CharField(verbose_name="专业", max_length=100, null=True, blank=True)
+    phone = models.CharField(verbose_name="手机号", max_length=11, null=True, blank=True)
+    email = models.EmailField(verbose_name="邮箱", null=True, blank=True)
+    apply_department = models.ForeignKey(to="Department", to_field="department_id", related_name="recruitment_applications",
+                                         verbose_name="申请部门", null=True, blank=True, on_delete=models.SET_NULL)
+    status_choices = (
+        (1, "待审核"),
+        (2, "已通过"),
+        (3, "已拒绝"),
+    )
+    status = models.SmallIntegerField(verbose_name="状态", choices=status_choices, default=1)
+    apply_time = models.DateTimeField(verbose_name="申请时间", null=True, blank=True, default=datetime.datetime.now)
+    remark = models.TextField(verbose_name="备注", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "招新报名"
+        db_table = "招新报名表"
+        unique_together = [["recruitment", "student_id"]]
+
+    def __str__(self):
+        return f"{self.name}({self.student_id}) - {self.recruitment.title}"
+

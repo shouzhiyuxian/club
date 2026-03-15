@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<br>
+<div class="container">
+    <ul class="list-group">
+        <li class="list-group-item list-group-item-dark">
+            <i class="bi bi-megaphone-fill"></i>
+            <strong>新建招新批次</strong>
+        </li>
+        <li class="list-group-item">
+            <form method="post">
+                {% csrf_token %}
+                {% for field in form %}
+                <div class="mb-3">
+                    <label>{{ field.label }}</label>
+                    {{ field }}
+                    <span style="color: red">{{ field.errors.0 }}</span>
+                </div>
+                {% endfor %}
+                <div style="margin: 10px">
+                    <button type="submit" class="btn btn-primary">提交</button>
+                    <a href="/recruitment/list" class="btn btn-secondary">返回</a>
+                </div>
+            </form>
+        </li>
+    </ul>
+</div>
+{% endblock %}

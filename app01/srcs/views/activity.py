@@ -2,34 +2,41 @@ from django.shortcuts import render, redirect
 from app01.models import Activity, Club, Member
 from app01.utils.page_nav import PageNav
 from app01.srcs.forms.form import ActivityModelForm
+from app01.srcs.utils.export_excel import export_to_excel
+
+
+def _activity_queryset(req):
+    search_data_dict = {}
+    if req.GET.get("q"):
+        search_data_dict["title__contains"] = req.GET.get("q")
+    if req.GET.get("club_id"):
+        search_data_dict["club_id"] = req.GET.get("club_id")
+    return Activity.objects.filter(**search_data_dict).order_by("-create_time")
 
 
 def activity_list(req):
     """活动列表"""
-    search_data_dict = {}
-    search_data = req.GET.get("q", "")
-    club_id = req.GET.get("club_id", "")
+    queryset = _activity_queryset(req)
+    if req.GET.get("export") == "1":
+        status_map = {1: "报名中", 2: "进行中", 3: "已结束", 4: "已取消"}
+        headers = ["活动ID", "活动名称", "所属社团", "地点", "开始时间", "结束时间", "人数限制", "当前人数", "组织者", "状态", "创建时间"]
+        rows = []
+        for a in queryset:
+            rows.append([
+                a.activity_id, a.title, a.club.name if a.club else "", a.location or "",
+                a.start_time, a.end_time, a.max_participants or "", a.current_participants,
+                a.organizer.name if a.organizer else "", status_map.get(a.status, ""), a.create_time,
+            ])
+        return export_to_excel(rows, headers, filename="活动列表.xlsx", sheet_name="活动")
     
-    if search_data:
-        search_data_dict["title__contains"] = search_data
-    
-    if club_id:
-        search_data_dict["club_id"] = club_id
-    
-    queryset = Activity.objects.filter(**search_data_dict).order_by("-create_time")
     page_nav_obj = PageNav(req, queryset)
-    page_queryset = page_nav_obj.page_queryset
-    page_nav_string = page_nav_obj.get_html()
-    
-    # 获取所有社团用于筛选
     clubs = Club.objects.all()
-    
     content = {
-        "queryset": page_queryset,
-        "page_nav_string": page_nav_string,
-        "search_data": search_data,
+        "queryset": page_nav_obj.page_queryset,
+        "page_nav_string": page_nav_obj.get_html(),
+        "search_data": req.GET.get("q", ""),
         "clubs": clubs,
-        "selected_club_id": club_id,
+        "selected_club_id": req.GET.get("club_id", ""),
     }
     return render(req, "activity/activity_list.html", content)
 

@@ -1,0 +1,79 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-7 col-sm-4">
+                <a class="btn btn-success" style="margin: 10px" href="/recruitment/add">
+                    <i class="bi bi-plus-circle-fill"></i>
+                    新建招新批次
+                </a>
+                <a class="btn btn-outline-primary" style="margin: 10px" href="/recruitment/applications/">
+                    <i class="bi bi-list-ul"></i>
+                    招新报名列表
+                </a>
+                <a class="btn btn-outline-secondary" style="margin: 10px" href="/recruitment/list?{{ request.GET.urlencode }}&export=1">
+                    <i class="bi bi-download"></i>
+                    导出 Excel
+                </a>
+            </div>
+            <div class="col-md-5 col-sm-8">
+                <form method="get">
+                    <div class="d-flex flex-row">
+                        <input class="form-control me-2" type="search" name="q" value="{{ search_data }}" style="margin: 10px" placeholder="批次名称" aria-label="Search">
+                        <select class="form-control me-2" name="club_id" style="margin: 10px; width: 150px">
+                            <option value="">全部社团</option>
+                            {% for club in clubs %}
+                            <option value="{{ club.club_id }}" {% if selected_club_id and selected_club_id|stringformat:"s" == club.club_id|stringformat:"s" %}selected{% endif %}>{{ club.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <button class="btn btn-outline-success" type="submit" style="margin: 10px; width: 100px"><strong>搜索</strong></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <ul class="list-group">
+            <li class="list-group-item list-group-item-dark">
+                <i class="bi bi-megaphone-fill"></i>
+                <strong>招新批次列表</strong>
+            </li>
+            <li class="list-group-item">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">社团</th>
+                            <th scope="col">批次名称</th>
+                            <th scope="col">开始日期</th>
+                            <th scope="col">结束日期</th>
+                            <th scope="col">状态</th>
+                            <th scope="col">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for obj in queryset %}
+                        <tr>
+                            <th scope="row">{{ obj.recruitment_id }}</th>
+                            <td>{{ obj.club.name }}</td>
+                            <td>{{ obj.title }}</td>
+                            <td>{{ obj.start_date|default:"-" }}</td>
+                            <td>{{ obj.end_date|default:"-" }}</td>
+                            <td>{{ obj.get_status_display }}</td>
+                            <td>
+                                <a class="btn btn-info btn-sm" href="/recruitment/applications/?recruitment_id={{ obj.recruitment_id }}">报名</a>
+                                <a class="btn btn-primary btn-sm" href="/recruitment/{{ obj.recruitment_id }}/edit">编辑</a>
+                                <a class="btn btn-danger btn-sm" href="/recruitment/delete/?nid={{ obj.recruitment_id }}">删除</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </li>
+        </ul>
+        <div style="display: flex; justify-content: center;">
+            {{ page_nav_string }}
+        </div>
+    </div>
+</div>
+{% endblock %}

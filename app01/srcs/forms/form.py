@@ -1,7 +1,8 @@
 from django import forms
 from app01.utils.bootstrap_modelform import BootstrapModelForm
 from app01.models import (
-    MyAdmin, Club, Department, Role, Member, Activity, ActivityRegistration
+    MyAdmin, Club, Department, Role, Member, Activity, ActivityRegistration,
+    Recruitment, RecruitmentApplication,
 )
 
 from django.core.exceptions import ValidationError
@@ -156,3 +157,32 @@ class ActivityRegistrationModelForm(BootstrapModelForm):
     class Meta:
         model = ActivityRegistration
         fields = ["activity", "member", "status", "remark"]
+
+
+# 招新批次相关表单
+class RecruitmentModelForm(BootstrapModelForm):
+    start_date = forms.DateField(required=False,
+                                 widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}))
+    end_date = forms.DateField(required=False,
+                               widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}))
+    
+    class Meta:
+        model = Recruitment
+        fields = ["club", "title", "start_date", "end_date", "status"]
+
+
+# 招新报名相关表单
+class RecruitmentApplicationModelForm(BootstrapModelForm):
+    apply_time = forms.DateTimeField(required=False,
+                                     widget=forms.DateTimeInput(attrs={"class": "form-control", "type": "datetime-local"}))
+    
+    class Meta:
+        model = RecruitmentApplication
+        fields = ["recruitment", "student_id", "name", "gender", "grade", "major", "phone", "email",
+                  "apply_department", "status", "apply_time", "remark"]
+    
+    def clean_phone(self):
+        phone = self.cleaned_data.get("phone")
+        if phone and len(phone) != 11:
+            raise ValidationError("手机号格式错误，应为11位数字")
+        return phone

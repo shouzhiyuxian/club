@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from app01 import views
-from app01.srcs.views import myadmin, account, club, member, activity, registration, department, role
+from app01.srcs.views import myadmin, account, club, member, activity, registration, department, role, recruitment
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -69,4 +69,15 @@ urlpatterns = [
     path("registration/add", registration.registration_add),
     path("registration/<int:nid>/edit/", registration.registration_edit),
     path("registration/delete/", registration.registration_delete),
+    
+    # 招新管理
+    path("recruitment/list", recruitment.recruitment_list),
+    path("recruitment/add", recruitment.recruitment_add),
+    path("recruitment/<int:nid>/edit/", recruitment.recruitment_edit),
+    path("recruitment/delete/", recruitment.recruitment_delete),
+    path("recruitment/applications/", recruitment.application_list),
+    path("recruitment/applications/add/", recruitment.application_add),
+    path("recruitment/applications/<int:nid>/edit/", recruitment.application_edit),
+    path("recruitment/applications/delete/", recruitment.application_delete),
+    path("recruitment/applications/<int:nid>/approve/", recruitment.application_approve),
 ]

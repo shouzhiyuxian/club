@@ -2,37 +2,35 @@ from django.shortcuts import render, redirect
 from app01.models import ActivityRegistration, Activity, Member
 from app01.utils.page_nav import PageNav
 from app01.srcs.forms.form import ActivityRegistrationModelForm
-from django.http import JsonResponse
+from app01.srcs.utils.export_excel import export_to_excel
+
+
+def _registration_queryset(req):
+    search_data_dict = {}
+    if req.GET.get("activity_id"):
+        search_data_dict["activity_id"] = req.GET.get("activity_id")
+    if req.GET.get("member_id"):
+        search_data_dict["member_id"] = req.GET.get("member_id")
+    return ActivityRegistration.objects.filter(**search_data_dict).order_by("-register_time")
 
 
 def registration_list(req):
     """活动报名列表"""
-    search_data_dict = {}
-    activity_id = req.GET.get("activity_id", "")
-    member_id = req.GET.get("member_id", "")
+    queryset = _registration_queryset(req)
+    if req.GET.get("export") == "1":
+        status_map = {1: "已报名", 2: "已参加", 3: "已取消", 4: "未参加"}
+        headers = ["报名ID", "活动", "成员", "学号", "报名时间", "状态", "备注"]
+        rows = [[r.registration_id, r.activity.title, r.member.name, r.member.member_id, r.register_time, status_map.get(r.status, ""), (r.remark or "")[:50]] for r in queryset]
+        return export_to_excel(rows, headers, filename="活动报名列表.xlsx", sheet_name="活动报名")
     
-    if activity_id:
-        search_data_dict["activity_id"] = activity_id
-    
-    if member_id:
-        search_data_dict["member_id"] = member_id
-    
-    queryset = ActivityRegistration.objects.filter(**search_data_dict).order_by("-register_time")
     page_nav_obj = PageNav(req, queryset)
-    page_queryset = page_nav_obj.page_queryset
-    page_nav_string = page_nav_obj.get_html()
-    
-    # 获取所有活动和成员用于筛选
-    activities = Activity.objects.all()
-    members = Member.objects.all()
-    
     content = {
-        "queryset": page_queryset,
-        "page_nav_string": page_nav_string,
-        "activities": activities,
-        "members": members,
-        "selected_activity_id": activity_id,
-        "selected_member_id": member_id,
+        "queryset": page_nav_obj.page_queryset,
+        "page_nav_string": page_nav_obj.get_html(),
+        "activities": Activity.objects.all(),
+        "members": Member.objects.all(),
+        "selected_activity_id": req.GET.get("activity_id", ""),
+        "selected_member_id": req.GET.get("member_id", ""),
     }
     return render(req, "registration/registration_list.html", content)
 
