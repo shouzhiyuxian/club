@@ -1,0 +1,74 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-7 col-sm-4" >
+            {% if role == "admin" or role == "president" %}
+            <a class="btn btn-success" style="margin: 10px" href="/announcement/add" target="_blank">
+                <i class="bi bi-plus-circle-fill"></i>
+                发布公告
+            </a>
+            {% endif %}
+            </div>
+            <div class="col-md-5 col-sm-8 ">
+                <form method="get">
+                <div class="d-flex flex-row">
+                    <input class="form-control me-2" type="search" name="search" value="{{ search }}" style="margin: 10px" placeholder="搜索公告标题" aria-label="Search">
+                    <button class="btn btn-outline-success" type="submit" style="margin: 10px; width: 100px"><strong>搜索</strong></button>
+                </div>
+                </form>
+            </div>
+        </div>
+        <ul class="list-group">
+            <li class="list-group-item list-group-item-dark">
+                <i class="bi bi-megaphone-fill"></i>
+                <strong>公告列表</strong>
+            </li>
+            {% for obj in page_queryset %}
+            <li class="list-group-item">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">
+                        {% if obj.is_top %}
+                        <span class="badge bg-danger">置顶</span>
+                        {% endif %}
+                        {{ obj.title }}
+                        {% if obj.status == 2 %}
+                        <span class="badge bg-secondary">草稿</span>
+                        {% elif obj.status == 3 %}
+                        <span class="badge bg-dark">已删除</span>
+                        {% endif %}
+                        {% if obj.club %}
+                        <span class="badge bg-info">{{ obj.club.name }}</span>
+                        {% else %}
+                        <span class="badge bg-warning">全局公告</span>
+                        {% endif %}
+                    </h5>
+                    <small>{{ obj.publish_time|date:"Y-m-d H:i" }}</small>
+                </div>
+                <p class="mb-1">{{ obj.content|truncatechars:100 }}</p>
+                <small>发布者: {{ obj.publisher.user_name|default:"系统" }}</small>
+                <div class="mt-2">
+                    <a href="/announcement/{{ obj.announcement_id }}/detail/" class="btn btn-sm btn-outline-primary">查看详情</a>
+                    {% if role == "admin" %}
+                    <a href="/announcement/{{ obj.announcement_id }}/edit/" class="btn btn-sm btn-outline-warning">编辑</a>
+                    <a href="/announcement/{{ obj.announcement_id }}/delete/" class="btn btn-sm btn-outline-danger" onclick="return confirm('确定删除？')">删除</a>
+                    {% elif role == "president" and obj.club_id == club_id %}
+                    <a href="/announcement/{{ obj.announcement_id }}/edit/" class="btn btn-sm btn-outline-warning">编辑</a>
+                    <a href="/announcement/{{ obj.announcement_id }}/delete/" class="btn btn-sm btn-outline-danger" onclick="return confirm('确定删除？')">删除</a>
+                    {% endif %}
+                </div>
+            </li>
+            {% empty %}
+            <li class="list-group-item">暂无公告</li>
+            {% endfor %}
+        </ul>
+
+        <!-- 分页 -->
+        <div class="mt-3">
+            {{ page_nav_html|safe }}
+        </div>
+    </div>
+    </div>
+{% endblock %}

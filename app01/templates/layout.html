@@ -36,6 +36,7 @@
         <li class="nav-item"><a class="nav-link" href="/activity/list">活动管理</a></li>
         <li class="nav-item"><a class="nav-link" href="/registration/list">活动报名</a></li>
         <li class="nav-item"><a class="nav-link" href="/recruitment/list">招新管理</a></li>
+        <li class="nav-item"><a class="nav-link" href="/announcement/list">公告管理</a></li>
         {% elif request.session.info.type == "president" %}
         <li class="nav-item"><a class="nav-link" href="/club/list">本社团</a></li>
         <li class="nav-item"><a class="nav-link" href="/club/transfer/">转让社长</a></li>
@@ -43,10 +44,12 @@
         <li class="nav-item"><a class="nav-link" href="/activity/list">活动管理</a></li>
         <li class="nav-item"><a class="nav-link" href="/registration/list">活动报名</a></li>
         <li class="nav-item"><a class="nav-link" href="/recruitment/list">招新管理</a></li>
+        <li class="nav-item"><a class="nav-link" href="/announcement/list">公告管理</a></li>
         {% else %}
         <li class="nav-item"><a class="nav-link" href="/member/profile/">我的信息</a></li>
         <li class="nav-item"><a class="nav-link" href="/member/my-registrations/">我的报名</a></li>
         <li class="nav-item"><a class="nav-link" href="/member/activities/">可报名活动</a></li>
+        <li class="nav-item"><a class="nav-link" href="/announcement/list">公告</a></li>
         {% endif %}
         {% endif %}
         <li class="nav-item dropdown">

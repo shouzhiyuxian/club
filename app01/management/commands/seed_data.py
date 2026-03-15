@@ -7,7 +7,7 @@ import random
 import datetime
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from app01.models import Club, Department, Role, Member, Activity, ActivityRegistration
+from app01.models import Club, Department, Role, Member, Activity, ActivityRegistration, Announcement, MyAdmin
 
 
 class Command(BaseCommand):
@@ -31,6 +31,7 @@ class Command(BaseCommand):
         activities = self._create_activities(clubs, members)
         self._create_registrations(activities, members)
         self._update_activity_participants()
+        self._create_announcements()
         self.stdout.write(self.style.SUCCESS("假数据填充完成。可访问首页查看仪表盘。"))
 
     def _clear_data(self):
@@ -39,7 +40,8 @@ class Command(BaseCommand):
         Member.objects.all().delete()
         Department.objects.all().delete()
         Club.objects.all().delete()
-        self.stdout.write("已清空活动报名、活动、成员、部门、社团数据。")
+        Announcement.objects.all().delete()
+        self.stdout.write("已清空活动报名、活动、成员、部门、社团、公告数据。")
 
     def _ensure_roles(self):
         """仅两种角色：社长、普通成员（系统身份为管理员/社长/成员）"""
@@ -191,3 +193,44 @@ class Command(BaseCommand):
         for act in Activity.objects.all():
             count = act.registrations.filter(status__in=[1, 2]).count()  # 已报名、已参加
             Activity.objects.filter(activity_id=act.activity_id).update(current_participants=count)
+
+    def _create_announcements(self):
+        """创建示例公告"""
+        announcements = [
+            {
+                "title": "欢迎新同学加入社团大家庭",
+                "content": "亲爱的同学们：\n\n欢迎大家加入我们的社团！在这里，你将有机会参与各种有趣的活动，结识志同道合的朋友，提升自己的综合素质。\n\n请大家积极参与社团活动，遵守社团规章制度，共同营造良好的社团氛围。\n\n祝大家在社团生活中收获满满！",
+                "status": 1,
+                "is_top": True,
+            },
+            {
+                "title": "关于2024年春季招新活动的通知",
+                "content": "各社团负责人：\n\n2024年春季招新活动即将开始，请各社团做好招新准备工作，包括制定招新计划、准备宣传材料、安排面试等。\n\n招新时间：3月1日-3月15日\n招新要求：热爱社团工作，有责任心，积极向上\n\n请于2月25日前将招新计划报送至学生处。",
+                "status": 1,
+                "is_top": False,
+            },
+            {
+                "title": "社团活动安全须知",
+                "content": "为了确保社团活动的顺利开展和同学们的安全，请大家务必遵守以下规定：\n\n1. 参加活动前请确认身体状况，如有不适及时告知负责人\n2. 活动过程中服从指挥，听从安排\n3. 注意个人财物安全\n4. 活动结束后及时返校，不得在外逗留\n\n安全第一，祝大家玩得开心！",
+                "status": 1,
+                "is_top": False,
+            },
+            {
+                "title": "社团经费使用管理办法",
+                "content": "为规范社团经费使用，提高资金使用效益，特制定本办法：\n\n1. 经费使用必须符合社团发展需要和学校相关规定\n2. 大额支出须经社长审批，重大活动经费使用须报学生处备案\n3. 所有发票须妥善保管，作为报销凭证\n4. 定期公布经费使用情况，接受成员监督\n\n请大家共同维护社团利益。",
+                "status": 1,
+                "is_top": False,
+            },
+        ]
+        
+        admin = MyAdmin.objects.first()  # 获取第一个管理员作为发布者
+        for ann_data in announcements:
+            Announcement.objects.get_or_create(
+                title=ann_data["title"],
+                defaults={
+                    "content": ann_data["content"],
+                    "publisher": admin,
+                    "status": ann_data["status"],
+                    "is_top": ann_data["is_top"],
+                }
+            )

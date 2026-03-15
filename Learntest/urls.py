@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from app01 import views
-from app01.srcs.views import myadmin, account, club, member, activity, registration, department, role, recruitment, member_portal
+from app01.srcs.views import myadmin, account, club, member, activity, registration, department, role, recruitment, member_portal, announcement
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -82,6 +82,14 @@ urlpatterns = [
     path("recruitment/applications/<int:nid>/edit/", recruitment.application_edit),
     path("recruitment/applications/delete/", recruitment.application_delete),
     path("recruitment/applications/<int:nid>/approve/", recruitment.application_approve),
+    
+    # 公告管理
+    path("announcement/list", announcement.announcement_list),
+    path("announcement/add", announcement.announcement_add),
+    path("announcement/<int:nid>/edit/", announcement.announcement_edit),
+    path("announcement/<int:nid>/delete/", announcement.announcement_delete),
+    path("announcement/<int:nid>/detail/", announcement.announcement_detail),
+    
     # 成员端（普通成员/社长个人视角）
     path("member/profile/", member_portal.member_profile),
     path("member/change-password/", member_portal.member_change_password),

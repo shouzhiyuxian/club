@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<br>
+<div>
+    <div class="container">
+        <ul class="list-group">
+            <li class="list-group-item list-group-item-dark">
+                <i class="bi bi-megaphone-fill"></i>
+                <strong>公告详情</strong>
+            </li>
+            <li class="list-group-item">
+                <h3>
+                    {% if obj.is_top %}
+                    <span class="badge bg-danger">置顶</span>
+                    {% endif %}
+                    {{ obj.title }}
+                </h3>
+                <p class="text-muted">发布时间: {{ obj.publish_time|date:"Y-m-d H:i:s" }} | 发布者: {{ obj.publisher.user_name|default:"系统" }}</p>
+                <hr>
+                <div style="white-space: pre-line;">{{ obj.content }}</div>
+                <hr>
+                <a href="/announcement/list" class="btn btn-secondary">返回列表</a>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

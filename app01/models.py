@@ -234,3 +234,30 @@ class RecruitmentApplication(models.Model):
     def __str__(self):
         return f"{self.name}({self.student_id}) - {self.recruitment.title}"
 
+
+class Announcement(models.Model):
+    """公告表"""
+    announcement_id = models.BigAutoField(primary_key=True, verbose_name="公告ID")
+    title = models.CharField(verbose_name="公告标题", max_length=200, null=False, blank=False)
+    content = models.TextField(verbose_name="公告内容", null=False, blank=False)
+    club = models.ForeignKey(to="Club", to_field="club_id", related_name="announcements",
+                            verbose_name="所属社团", null=True, blank=True, on_delete=models.CASCADE)
+    publisher = models.ForeignKey(to="MyAdmin", to_field="id", related_name="announcements",
+                                  verbose_name="发布者", null=True, blank=True, on_delete=models.SET_NULL)
+    publish_time = models.DateTimeField(verbose_name="发布时间", null=True, blank=True, default=datetime.datetime.now)
+    status_choices = (
+        (1, "发布"),
+        (2, "草稿"),
+        (3, "删除"),
+    )
+    status = models.SmallIntegerField(verbose_name="状态", choices=status_choices, default=1)
+    is_top = models.BooleanField(verbose_name="置顶", default=False)
+
+    class Meta:
+        verbose_name = "公告"
+        db_table = "announcement"
+        ordering = ["-is_top", "-publish_time"]
+
+    def __str__(self):
+        return self.title
+

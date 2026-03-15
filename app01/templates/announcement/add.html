@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<br>
+<div>
+    <div class="container">
+        <ul class="list-group">
+            <li class="list-group-item list-group-item-dark">
+                <i class="bi bi-megaphone-fill"></i>
+                <strong>发布公告</strong>
+            </li>
+            <li class="list-group-item">
+                <form method="post">
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <div class="mb-3">
+                            {% if field.name == 'is_top' %}
+                                <label class="form-label">{{ field.label }}</label>
+                                <div class="form-check form-switch">
+                                    {{ field }}
+                                    <label class="form-check-label" for="{{ field.id_for_label }}">置顶后显示在列表最前</label>
+                                </div>
+                            {% else %}
+                                <label>{{ field.label }}</label>
+                                {{ field }}
+                            {% endif %}
+                            <span style="color: red">{{ field.errors.0 }}</span>
+                        </div>
+                    {% endfor %}
+                <div style="margin: 10px">
+                    <button type="submit" class="btn btn-primary">发布</button>
+                    <a href="/announcement/list" class="btn btn-secondary">返回</a>
+                </div>
+                </form>
+
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

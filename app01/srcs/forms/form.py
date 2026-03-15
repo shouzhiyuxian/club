@@ -2,7 +2,7 @@ from django import forms
 from app01.utils.bootstrap_modelform import BootstrapModelForm
 from app01.models import (
     MyAdmin, Club, Department, Role, Member, Activity, ActivityRegistration,
-    Recruitment, RecruitmentApplication,
+    Recruitment, RecruitmentApplication, Announcement,
 )
 
 from django.core.exceptions import ValidationError
@@ -186,3 +186,14 @@ class RecruitmentApplicationModelForm(BootstrapModelForm):
         if phone and len(phone) != 11:
             raise ValidationError("手机号格式错误，应为11位数字")
         return phone
+
+
+class AnnouncementModelForm(BootstrapModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # 置顶用开关样式，不用 form-control
+        self.fields["is_top"].widget.attrs["class"] = "form-check-input"
+
+    class Meta:
+        model = Announcement
+        fields = ["title", "content", "status", "is_top"]
