@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from app01.models import Activity, Club, Member
+from app01.models import Activity, Club, Member, ActivityComment, ActivityPhoto, ActivityLike
 from app01.utils.page_nav import PageNav
 from app01.srcs.forms.form import ActivityModelForm
 from app01.srcs.utils.export_excel import export_to_excel
@@ -118,9 +118,25 @@ def activity_detail(req, nid):
     # 获取该活动的所有报名记录
     registrations = activity.registrations.all().order_by("registration_id")
     
+    # 获取活动评论、照片、点赞数据
+    comments = ActivityComment.objects.filter(activity=activity).select_related('member').order_by('create_time')
+    photos = ActivityPhoto.objects.filter(activity=activity).select_related('member').order_by('-upload_time')
+    likes = ActivityLike.objects.filter(activity=activity).select_related('member').order_by('-like_time')
+    
+    # 获取统计数据
+    comments_count = comments.count()
+    photos_count = photos.count()
+    likes_count = likes.count()
+    
     content = {
         "activity": activity,
         "registrations": registrations,
+        "comments": comments,
+        "photos": photos,
+        "likes": likes,
+        "comments_count": comments_count,
+        "photos_count": photos_count,
+        "likes_count": likes_count,
     }
     return render(req, "activity/activity_detail.html", content)
 

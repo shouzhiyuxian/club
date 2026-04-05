@@ -75,6 +75,159 @@
                     </table>
             </li>
         </ul>
+        
+        <!-- 活动互动内容 -->
+        <ul class="list-group" style="margin-top: 20px">
+            <li class="list-group-item list-group-item-dark">
+                <i class="bi bi-chat-dots"></i>
+                <strong>活动互动内容</strong>
+            </li>
+            <li class="list-group-item">
+                <!-- 导航标签页 -->
+                <ul class="nav nav-tabs" id="activityTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="comments-tab" data-bs-toggle="tab" data-bs-target="#comments" type="button" role="tab" aria-controls="comments" aria-selected="true">
+                            <i class="bi bi-chat-dots"></i> 评论 ({{ comments_count }})
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="photos-tab" data-bs-toggle="tab" data-bs-target="#photos" type="button" role="tab" aria-controls="photos" aria-selected="false">
+                            <i class="bi bi-images"></i> 照片 ({{ photos_count }})
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="likes-tab" data-bs-toggle="tab" data-bs-target="#likes" type="button" role="tab" aria-controls="likes" aria-selected="false">
+                            <i class="bi bi-heart"></i> 点赞 ({{ likes_count }})
+                        </button>
+                    </li>
+                </ul>
+                
+                <!-- 标签页内容 -->
+                <div class="tab-content mt-3" id="activityTabsContent">
+                    <!-- 评论区域 -->
+                    <div class="tab-pane fade show active" id="comments" role="tabpanel" aria-labelledby="comments-tab">
+                        {% if comments %}
+                            <div class="comments-list">
+                                {% for comment in comments %}
+                                    <div class="comment-item border-bottom pb-3 mb-3">
+                                        <div class="d-flex">
+                                            <div class="flex-shrink-0">
+                                                {% if comment.member.avatar %}
+                                                    <img src="{{ comment.member.avatar.url }}" alt="{{ comment.member.name }}" 
+                                                         class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                                                {% else %}
+                                                    <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center" 
+                                                         style="width: 40px; height: 40px;">
+                                                        <i class="bi bi-person text-white"></i>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="flex-grow-1 ms-3">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div>
+                                                        <strong>{{ comment.member.name }}</strong>
+                                                        {% if comment.member.nickname %}
+                                                            <small class="text-muted">({{ comment.member.nickname }})</small>
+                                                        {% endif %}
+                                                    </div>
+                                                    <small class="text-muted">{{ comment.create_time|date:"Y-m-d H:i" }}</small>
+                                                </div>
+                                                <p class="mt-2 mb-0">{{ comment.content }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center text-muted py-4">
+                                <i class="bi bi-chat-square" style="font-size: 3rem;"></i>
+                                <p class="mt-2">暂无评论</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- 照片区域 -->
+                    <div class="tab-pane fade" id="photos" role="tabpanel" aria-labelledby="photos-tab">
+                        {% if photos %}
+                            <div class="row">
+                                {% for photo in photos %}
+                                    <div class="col-md-4 mb-4">
+                                        <div class="card h-100">
+                                            <img src="{{ photo.photo.url }}" class="card-img-top" alt="活动照片" 
+                                                 style="height: 200px; object-fit: cover;">
+                                            <div class="card-body">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    {% if photo.member.avatar %}
+                                                        <img src="{{ photo.member.avatar.url }}" alt="{{ photo.member.name }}" 
+                                                             class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                                    {% else %}
+                                                        <div class="bg-secondary rounded-circle me-2 d-flex align-items-center justify-content-center" 
+                                                             style="width: 30px; height: 30px;">
+                                                            <i class="bi bi-person text-white" style="font-size: 12px;"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                    <div>
+                                                        <strong class="small">{{ photo.member.name }}</strong>
+                                                        <br>
+                                                        <small class="text-muted">{{ photo.upload_time|date:"Y-m-d H:i" }}</small>
+                                                    </div>
+                                                </div>
+                                                {% if photo.description %}
+                                                    <p class="card-text small">{{ photo.description }}</p>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center text-muted py-4">
+                                <i class="bi bi-image" style="font-size: 3rem;"></i>
+                                <p class="mt-2">暂无照片</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- 点赞区域 -->
+                    <div class="tab-pane fade" id="likes" role="tabpanel" aria-labelledby="likes-tab">
+                        {% if likes %}
+                            <div class="row">
+                                {% for like in likes %}
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card h-100">
+                                            <div class="card-body text-center">
+                                                {% if like.member.avatar %}
+                                                    <img src="{{ like.member.avatar.url }}" alt="{{ like.member.name }}" 
+                                                         class="rounded-circle mb-2" style="width: 60px; height: 60px; object-fit: cover;">
+                                                {% else %}
+                                                    <div class="bg-secondary rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" 
+                                                         style="width: 60px; height: 60px;">
+                                                        <i class="bi bi-person text-white"></i>
+                                                    </div>
+                                                {% endif %}
+                                                <h6 class="card-title">{{ like.member.name }}</h6>
+                                                {% if like.member.nickname %}
+                                                    <p class="card-text small text-muted">{{ like.member.nickname }}</p>
+                                                {% endif %}
+                                                <p class="card-text small text-muted">
+                                                    {{ like.member.club.name }} · {{ like.member.get_role_display }}
+                                                </p>
+                                                <small class="text-muted">{{ like.like_time|date:"Y-m-d H:i" }} 点赞</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center text-muted py-4">
+                                <i class="bi bi-heart" style="font-size: 3rem;"></i>
+                                <p class="mt-2">暂无点赞</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </li>
+        </ul>
     </div>
 </div>
 {% endblock %}

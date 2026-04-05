@@ -360,6 +360,11 @@
                                                         {{ follow.followed.club.name }} · {{ follow.followed.get_role_display }}
                                                     </p>
                                                     <small class="text-muted">{{ follow.follow_time|date:"Y-m-d H:i" }} 关注</small>
+                                                    <div class="mt-2">
+                                                        <button class="btn btn-outline-danger btn-sm" onclick="unfollowUser('{{ follow.followed.member_id }}', this)">
+                                                            <i class="bi bi-person-dash"></i> 取消关注
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -379,4 +384,52 @@
         </div>
     </div>
 </div>
+
+<script>
+function unfollowUser(memberId, buttonElement) {
+    if (!confirm('确定要取消关注此用户吗？')) {
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+    fetch(`/profile/${memberId}/follow/`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.action === 'unfollow') {
+            // 移除这个用户卡片
+            const card = buttonElement.closest('.col-md-6');
+            card.remove();
+            
+            // 更新标签页的计数
+            const followingTab = document.querySelector('#following-tab');
+            const currentCount = parseInt(followingTab.textContent.match(/\d+/)[0]);
+            followingTab.innerHTML = followingTab.innerHTML.replace(/\(\d+\)/, `(${currentCount - 1})`);
+            
+            // 如果没有关注用户了，显示空状态
+            const followingContainer = document.querySelector('#following .row');
+            if (followingContainer.children.length === 0) {
+                const emptyState = `
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-person-plus" style="font-size: 3rem;"></i>
+                        <p class="mt-2">暂无关注用户</p>
+                        <p class="small">去 <a href="/member/list/">成员列表</a> 发现更多有趣的人吧！</p>
+                    </div>
+                `;
+                document.querySelector('#following').innerHTML = emptyState;
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('操作失败，请重试');
+    });
+}
+</script>
+
+{% endblock %}
 {% endblock %}
