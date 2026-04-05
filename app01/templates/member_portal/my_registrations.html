@@ -22,7 +22,11 @@
                 <tbody>
                     {% for obj in queryset %}
                     <tr>
-                        <td>{{ obj.activity.title }}</td>
+                        <td>
+                            <a href="/member/activity/{{ obj.activity.activity_id }}/" class="text-decoration-none">
+                                {{ obj.activity.title }}
+                            </a>
+                        </td>
                         <td>{{ obj.activity.club.name|default:"-" }}</td>
                         <td>{{ obj.activity.location|default:"-" }}</td>
                         <td>{{ obj.activity.start_time|default:"-" }}</td>

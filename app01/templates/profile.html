@@ -1,0 +1,190 @@
+{% extends "layout.html" %}
+
+{% block title %}个人主页 - {% if is_admin_profile %}{{ target_admin.user_name }}{% else %}{{ target_member.name }}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- 左侧用户信息 -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    {% if is_admin_profile %}
+                        <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 120px; height: 120px;">
+                            <i class="fas fa-user-shield fa-3x text-white"></i>
+                        </div>
+                        <h4 class="card-title">{{ target_admin.user_name }}</h4>
+                        <p class="text-muted">管理员 ({{ target_admin.id }})</p>
+                        <span class="badge bg-secondary">管理员</span>
+                    {% else %}
+                        {% if target_member.avatar %}
+                            <img src="{{ target_member.avatar.url }}" alt="头像" class="rounded-circle mb-3" style="width: 120px; height: 120px; object-fit: cover;">
+                        {% else %}
+                            <div class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 120px; height: 120px;">
+                                <i class="fas fa-user fa-3x text-white"></i>
+                            </div>
+                        {% endif %}
+                        <h4 class="card-title">{{ target_member.nickname|default:target_member.name }}</h4>
+                        <p class="text-muted">{{ target_member.name }} ({{ target_member.member_id }})</p>
+                        
+                        {% if target_member.club %}
+                            <p><i class="fas fa-users"></i> {{ target_member.club.name }}</p>
+                        {% endif %}
+                        
+
+                        <div class="row text-center mt-3">
+                            <div class="col-6">
+                                <div class="h5 mb-0">{{ following_count }}</div>
+                                <small class="text-muted">关注</small>
+                            </div>
+                            <div class="col-6">
+                                <div class="h5 mb-0">{{ followers_count }}</div>
+                                <small class="text-muted">粉丝</small>
+                            </div>
+                        </div>
+                        
+                        {% if not is_own_profile %}
+                            <button id="follow-btn" class="btn btn-primary mt-3" data-member-id="{{ target_member.member_id }}">
+                                {% if is_following %}
+                                    <i class="fas fa-user-minus"></i> 取消关注
+                                {% else %}
+                                    <i class="fas fa-user-plus"></i> 关注
+                                {% endif %}
+                            </button>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if not is_admin_profile %}
+            <!-- 基本信息 -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">基本信息</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>性别：</strong>{{ target_member.get_gender_display }}</p>
+                    <p><strong>年级：</strong>{{ target_member.get_grade_display }}</p>
+                    <p><strong>专业：</strong>{{ target_member.major|default:"未填写" }}</p>
+                    <p><strong>手机号：</strong>{{ target_member.phone|default:"未填写" }}</p>
+                    <p><strong>邮箱：</strong>{{ target_member.email|default:"未填写" }}</p>
+                    <p><strong>加入时间：</strong>{{ target_member.join_time|date:"Y-m-d" }}</p>
+                    <p><strong>状态：</strong>{{ target_member.get_status_display }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- 右侧内容 -->
+        <div class="col-md-8">
+            {% if not is_admin_profile %}
+            <!-- 加入的社团 -->
+            {% if joined_clubs %}
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0">加入的社团</h5>
+                </div>
+                <div class="card-body">
+                    {% for club in joined_clubs %}
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-users text-primary me-2"></i>
+                            <span>{{ club.name }}</span>
+                            {% if club.description %}
+                                <small class="text-muted ms-2">{{ club.description }}</small>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- 参加过的活动 -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0">参加过的活动</h5>
+                </div>
+                <div class="card-body">
+                    {% if participated_activities %}
+                        <div class="list-group">
+                            {% for reg in participated_activities %}
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ reg.activity.title }}</h6>
+                                        <small>{{ reg.register_time|date:"Y-m-d" }}</small>
+                                    </div>
+                                    <p class="mb-1">{{ reg.activity.description|truncatechars:100 }}</p>
+                                    <small class="text-muted">
+                                        社团：{{ reg.activity.club.name }} | 
+                                        状态：{{ reg.get_status_display }}
+                                    </small>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">暂无参加的活动</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- 共同活动（仅同一社团非自己时显示） -->
+            {% if common_activities %}
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0">共同参与的活动</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for activity in common_activities %}
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ activity.title }}</h6>
+                                    <small>{{ activity.create_time|date:"Y-m-d" }}</small>
+                                </div>
+                                <p class="mb-1">{{ activity.description|truncatechars:100 }}</p>
+                                <small class="text-muted">
+                                    社团：{{ activity.club.name }}
+                                </small>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% else %}
+            <!-- 管理员信息 -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">管理员信息</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>管理员账号：</strong>{{ target_admin.id }}</p>
+                    <p><strong>管理员姓名：</strong>{{ target_admin.user_name }}</p>
+                    <p class="text-muted">系统管理员，负责平台整体管理</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if not is_admin_profile %}
+<script>
+$(document).ready(function() {
+    $('#follow-btn').click(function() {
+        const memberId = $(this).data('member-id');
+        const btn = $(this);
+        
+        $.post(`/profile/${memberId}/follow/`, {}, function(data) {
+            if (data.action === 'follow') {
+                btn.html('<i class="fas fa-user-minus"></i> 取消关注');
+            } else if (data.action === 'unfollow') {
+                btn.html('<i class="fas fa-user-plus"></i> 关注');
+            }
+        }).fail(function(xhr) {
+            alert('操作失败：' + xhr.responseJSON.error);
+        });
+    });
+});
+</script>
+{% endif %}
+{% endblock %}

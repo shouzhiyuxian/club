@@ -1,0 +1,296 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <!-- 活动基本信息 -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4><i class="bi bi-calendar-event"></i> {{ activity.title }}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            {% if activity.description %}
+                                <p class="lead">{{ activity.description }}</p>
+                            {% endif %}
+                            
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <p><strong><i class="bi bi-geo-alt"></i> 地点：</strong> {{ activity.location|default:"未设置" }}</p>
+                                    <p><strong><i class="bi bi-clock"></i> 开始时间：</strong> 
+                                        {% if activity.start_time %}
+                                            {{ activity.start_time|date:"Y-m-d H:i" }}
+                                        {% else %}
+                                            未设置
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong><i class="bi bi-people"></i> 参与人数：</strong> {{ activity.current_participants }} / {{ activity.max_participants|default:"不限" }}</p>
+                                    <p><strong><i class="bi bi-person"></i> 组织者：</strong> {{ activity.organizer.name|default:"未设置" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-grid gap-2">
+                                {% if is_registered %}
+                                    <button class="btn btn-success" disabled>
+                                        <i class="bi bi-check-circle"></i> 已报名
+                                    </button>
+                                {% elif activity.status == 1 %}
+                                    <a href="/member/activities/{{ activity.activity_id }}/register/" class="btn btn-primary">
+                                        <i class="bi bi-plus-circle"></i> 立即报名
+                                    </a>
+                                {% endif %}
+                                
+                                <button class="btn {% if is_liked %}btn-danger{% else %}btn-outline-danger{% endif %}" 
+                                        onclick="toggleLike({{ activity.activity_id }})">
+                                    <i class="bi bi-heart{% if is_liked %}-fill{% endif %}"></i> 
+                                    点赞 ({{ likes_count }})
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 活动交互功能 -->
+            <ul class="nav nav-tabs" id="activityTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="comments-tab" data-bs-toggle="tab" data-bs-target="#comments" type="button" role="tab" aria-controls="comments" aria-selected="true">
+                        <i class="bi bi-chat-dots"></i> 评论 ({{ comments|length }})
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="photos-tab" data-bs-toggle="tab" data-bs-target="#photos" type="button" role="tab" aria-controls="photos" aria-selected="false">
+                        <i class="bi bi-images"></i> 照片 ({{ photos|length }})
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="participants-tab" data-bs-toggle="tab" data-bs-target="#participants" type="button" role="tab" aria-controls="participants" aria-selected="false">
+                        <i class="bi bi-people"></i> 参与者 ({{ registrations|length }})
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content mt-3" id="activityTabsContent">
+                <!-- 评论区域 -->
+                <div class="tab-pane fade show active" id="comments" role="tabpanel" aria-labelledby="comments-tab">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>活动评论</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- 评论列表 -->
+                            {% if comments %}
+                                <div class="comments-list mb-4">
+                                    {% for comment in comments %}
+                                        <div class="comment-item border-bottom pb-3 mb-3">
+                                            <div class="d-flex">
+                                                <div class="flex-shrink-0">
+                                                    {% if comment.member.avatar %}
+                                                        <img src="{{ comment.member.avatar.url }}" alt="{{ comment.member.name }}" 
+                                                             class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                                                    {% else %}
+                                                        <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center" 
+                                                             style="width: 40px; height: 40px;">
+                                                            <i class="bi bi-person text-white"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="flex-grow-1 ms-3">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <strong>{{ comment.member.name }}</strong>
+                                                            {% if comment.member.nickname %}
+                                                                <small class="text-muted">({{ comment.member.nickname }})</small>
+                                                            {% endif %}
+                                                        </div>
+                                                        <small class="text-muted">{{ comment.create_time|date:"Y-m-d H:i" }}</small>
+                                                    </div>
+                                                    <p class="mt-2 mb-0">{{ comment.content }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center text-muted py-4">
+                                    <i class="bi bi-chat-square" style="font-size: 3rem;"></i>
+                                    <p class="mt-2">暂无评论，快来发表第一条评论吧！</p>
+                                </div>
+                            {% endif %}
+
+                            <!-- 发表评论 -->
+                            <div class="comment-form">
+                                <h6>发表评论</h6>
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="comment">
+                                    <div class="mb-3">
+                                        <textarea name="content" class="form-control" rows="3" placeholder="写下你的评论..." required></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-send"></i> 发表评论
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 照片区域 -->
+                <div class="tab-pane fade" id="photos" role="tabpanel" aria-labelledby="photos-tab">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5>活动照片</h5>
+                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadPhotoModal">
+                                <i class="bi bi-upload"></i> 上传照片
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            {% if photos %}
+                                <div class="row">
+                                    {% for photo in photos %}
+                                        <div class="col-md-4 mb-4">
+                                            <div class="card h-100">
+                                                <img src="{{ photo.photo.url }}" class="card-img-top" alt="活动照片" 
+                                                     style="height: 200px; object-fit: cover;">
+                                                <div class="card-body">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        {% if photo.member.avatar %}
+                                                            <img src="{{ photo.member.avatar.url }}" alt="{{ photo.member.name }}" 
+                                                                 class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                                        {% else %}
+                                                            <div class="bg-secondary rounded-circle me-2 d-flex align-items-center justify-content-center" 
+                                                                 style="width: 30px; height: 30px;">
+                                                                <i class="bi bi-person text-white" style="font-size: 12px;"></i>
+                                                            </div>
+                                                        {% endif %}
+                                                        <div>
+                                                            <strong class="small">{{ photo.member.name }}</strong>
+                                                            <br>
+                                                            <small class="text-muted">{{ photo.upload_time|date:"Y-m-d H:i" }}</small>
+                                                        </div>
+                                                    </div>
+                                                    {% if photo.description %}
+                                                        <p class="card-text small">{{ photo.description }}</p>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center text-muted py-4">
+                                    <i class="bi bi-image" style="font-size: 3rem;"></i>
+                                    <p class="mt-2">暂无照片，快来上传第一张吧！</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 参与者区域 -->
+                <div class="tab-pane fade" id="participants" role="tabpanel" aria-labelledby="participants-tab">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>活动参与者</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if registrations %}
+                                <div class="row">
+                                    {% for reg in registrations %}
+                                        <div class="col-md-4 mb-3">
+                                            <div class="card h-100">
+                                                <div class="card-body text-center">
+                                                    {% if reg.member.avatar %}
+                                                        <img src="{{ reg.member.avatar.url }}" alt="{{ reg.member.name }}" 
+                                                             class="rounded-circle mb-2" style="width: 60px; height: 60px; object-fit: cover;">
+                                                    {% else %}
+                                                        <div class="bg-secondary rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" 
+                                                             style="width: 60px; height: 60px;">
+                                                            <i class="bi bi-person text-white"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                    <h6 class="card-title">{{ reg.member.name }}</h6>
+                                                    {% if reg.member.nickname %}
+                                                        <p class="card-text small text-muted">{{ reg.member.nickname }}</p>
+                                                    {% endif %}
+                                                    <span class="badge {% if reg.status == 2 %}bg-success{% elif reg.status == 1 %}bg-primary{% else %}bg-secondary{% endif %}">
+                                                        {% if reg.status == 1 %}已报名{% elif reg.status == 2 %}已参加{% else %}未参加{% endif %}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center text-muted py-4">
+                                    <i class="bi bi-people" style="font-size: 3rem;"></i>
+                                    <p class="mt-2">暂无参与者</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 上传照片模态框 -->
+<div class="modal fade" id="uploadPhotoModal" tabindex="-1" aria-labelledby="uploadPhotoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadPhotoModalLabel">上传活动照片</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+            </div>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="upload_photo">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="photo" class="form-label">选择照片</label>
+                        <input type="file" class="form-control" id="photo" name="photo" accept="image/*" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">照片描述（可选）</label>
+                        <textarea class="form-control" id="description" name="description" rows="2" placeholder="简单描述一下这张照片..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">上传</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleLike(activityId) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/member/activity/${activityId}/`;
+    
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (csrfToken) {
+        form.appendChild(csrfToken.cloneNode(true));
+    }
+    
+    const actionInput = document.createElement('input');
+    actionInput.type = 'hidden';
+    actionInput.name = 'action';
+    actionInput.value = 'like';
+    form.appendChild(actionInput);
+    
+    document.body.appendChild(form);
+    form.submit();
+}
+</script>
+
+{% endblock %}

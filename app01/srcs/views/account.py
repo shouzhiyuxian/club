@@ -57,6 +57,7 @@ def login(req):
             "name": member.name,
             "club_id": member.club_id,
             "role_level": role_level,
+            "avatar": member.avatar.url if member.avatar else None,
         }
         return redirect("/")
 

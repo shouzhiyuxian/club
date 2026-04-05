@@ -53,7 +53,6 @@
                             <th scope="col">学号</th>
                             <th scope="col">姓名</th>
                             <th scope="col">年级</th>
-                            <th scope="col">申请部门</th>
                             <th scope="col">状态</th>
                             <th scope="col">申请时间</th>
                             <th scope="col">操作</th>
@@ -67,7 +66,6 @@
                             <td>{{ obj.student_id }}</td>
                             <td>{{ obj.name }}</td>
                             <td>{{ obj.get_grade_display|default:"-" }}</td>
-                            <td>{{ obj.apply_department.name|default:"-" }}</td>
                             <td>{{ obj.get_status_display }}</td>
                             <td>{{ obj.apply_time }}</td>
                             <td>

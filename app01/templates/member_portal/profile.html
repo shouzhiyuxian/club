@@ -1,30 +1,382 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<br>
 <div class="container">
-    <ul class="list-group">
-        <li class="list-group-item list-group-item-dark">
-            <i class="bi bi-person-circle"></i>
-            <strong>我的信息</strong>
-        </li>
-        <li class="list-group-item">
-            <form method="post">
-                {% csrf_token %}
-                {% for field in form %}
-                <div class="mb-3">
-                    <label>{{ field.label }}</label>
-                    {{ field }}
-                    <span style="color: red">{{ field.errors.0 }}</span>
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="bi bi-person-circle"></i> 我的信息</h4>
                 </div>
-                {% endfor %}
-                <div style="margin: 10px">
-                    <button type="submit" class="btn btn-primary">保存</button>
-                    <a href="/member/change-password/" class="btn btn-outline-secondary">修改密码</a>
-                    <a href="/" class="btn btn-secondary">返回首页</a>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.member_id.id_for_label }}" class="form-label">{{ form.member_id.label }}</label>
+                                    {{ form.member_id }}
+                                    <div class="invalid-feedback">{{ form.member_id.errors.0 }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
+                                    {{ form.name }}
+                                    <div class="invalid-feedback">{{ form.name.errors.0 }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.nickname.id_for_label }}" class="form-label">{{ form.nickname.label }}</label>
+                                    {{ form.nickname }}
+                                    <div class="invalid-feedback">{{ form.nickname.errors.0 }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.avatar.id_for_label }}" class="form-label">{{ form.avatar.label }}</label>
+                                    {{ form.avatar }}
+                                    <div class="invalid-feedback">{{ form.avatar.errors.0 }}</div>
+                                    {% if member.avatar %}
+                                        <div class="mt-2">
+                                            <img src="{{ member.avatar.url }}" alt="当前头像" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;">
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.gender.id_for_label }}" class="form-label">{{ form.gender.label }}</label>
+                                    {{ form.gender }}
+                                    <div class="invalid-feedback">{{ form.gender.errors.0 }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.grade.id_for_label }}" class="form-label">{{ form.grade.label }}</label>
+                                    {{ form.grade }}
+                                    <div class="invalid-feedback">{{ form.grade.errors.0 }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.major.id_for_label }}" class="form-label">{{ form.major.label }}</label>
+                                    {{ form.major }}
+                                    <div class="invalid-feedback">{{ form.major.errors.0 }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.phone.id_for_label }}" class="form-label">{{ form.phone.label }}</label>
+                                    {{ form.phone }}
+                                    <div class="invalid-feedback">{{ form.phone.errors.0 }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+                                    {{ form.email }}
+                                    <div class="invalid-feedback">{{ form.email.errors.0 }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.club.id_for_label }}" class="form-label">{{ form.club.label }}</label>
+                                    {{ form.club }}
+                                    <div class="invalid-feedback">{{ form.club.errors.0 }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.role.id_for_label }}" class="form-label">{{ form.role.label }}</label>
+                                    {{ form.role }}
+                                    <div class="invalid-feedback">{{ form.role.errors.0 }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.join_time.id_for_label }}" class="form-label">{{ form.join_time.label }}</label>
+                                    {{ form.join_time }}
+                                    <div class="invalid-feedback">{{ form.join_time.errors.0 }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.status.id_for_label }}" class="form-label">{{ form.status.label }}</label>
+                                    {{ form.status }}
+                                    <div class="invalid-feedback">{{ form.status.errors.0 }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.remark.id_for_label }}" class="form-label">{{ form.remark.label }}</label>
+                            {{ form.remark }}
+                            <div class="invalid-feedback">{{ form.remark.errors.0 }}</div>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> 保存
+                            </button>
+                            <a href="/member/change-password/" class="btn btn-outline-secondary">
+                                <i class="bi bi-key"></i> 修改密码
+                            </a>
+                            <a href="/" class="btn btn-secondary">
+                                <i class="bi bi-house"></i> 返回首页
+                            </a>
+                        </div>
+                    </form>
                 </div>
-            </form>
-        </li>
-    </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 活动参与历史 -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="bi bi-calendar-event"></i> 我的活动参与历史</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-tabs" id="activityTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="registrations-tab" data-bs-toggle="tab" data-bs-target="#registrations" type="button" role="tab" aria-controls="registrations" aria-selected="true">
+                                <i class="bi bi-check-circle"></i> 报名记录 ({{ registrations|length }})
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="comments-tab" data-bs-toggle="tab" data-bs-target="#comments" type="button" role="tab" aria-controls="comments" aria-selected="false">
+                                <i class="bi bi-chat-dots"></i> 我的评论 ({{ comments|length }})
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="photos-tab" data-bs-toggle="tab" data-bs-target="#photos" type="button" role="tab" aria-controls="photos" aria-selected="false">
+                                <i class="bi bi-images"></i> 上传照片 ({{ photos|length }})
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="likes-tab" data-bs-toggle="tab" data-bs-target="#likes" type="button" role="tab" aria-controls="likes" aria-selected="false">
+                                <i class="bi bi-heart"></i> 点赞记录 ({{ likes|length }})
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="following-tab" data-bs-toggle="tab" data-bs-target="#following" type="button" role="tab" aria-controls="following" aria-selected="false">
+                                <i class="bi bi-person-plus"></i> 我的关注 ({{ following|length }})
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content mt-3" id="activityTabsContent">
+                        <!-- 报名记录 -->
+                        <div class="tab-pane fade show active" id="registrations" role="tabpanel" aria-labelledby="registrations-tab">
+                            {% if registrations %}
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>活动名称</th>
+                                                <th>报名时间</th>
+                                                <th>状态</th>
+                                                <th>活动时间</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for reg in registrations %}
+                                                <tr>
+                                                    <td>
+                                                        <a href="/member/activity/{{ reg.activity.activity_id }}/" class="text-decoration-none">
+                                                            {{ reg.activity.title }}
+                                                        </a>
+                                                    </td>
+                                                    <td>{{ reg.register_time|date:"Y-m-d H:i" }}</td>
+                                                    <td>
+                                                        {% if reg.status == 1 %}
+                                                            <span class="badge bg-primary">已报名</span>
+                                                        {% elif reg.status == 2 %}
+                                                            <span class="badge bg-success">已参加</span>
+                                                        {% elif reg.status == 3 %}
+                                                            <span class="badge bg-secondary">已取消</span>
+                                                        {% else %}
+                                                            <span class="badge bg-warning">未参加</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if reg.activity.start_time %}
+                                                            {{ reg.activity.start_time|date:"Y-m-d H:i" }}
+                                                        {% else %}
+                                                            未设置
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center text-muted py-4">
+                                    <i class="bi bi-calendar-x" style="font-size: 3rem;"></i>
+                                    <p class="mt-2">暂无活动报名记录</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- 评论记录 -->
+                        <div class="tab-pane fade" id="comments" role="tabpanel" aria-labelledby="comments-tab">
+                            {% if comments %}
+                                <div class="row">
+                                    {% for comment in comments %}
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card h-100">
+                                                <div class="card-body">
+                                                    <h6 class="card-title">
+                                                        <a href="/member/activity/{{ comment.activity.activity_id }}/" class="text-decoration-none">
+                                                            {{ comment.activity.title }}
+                                                        </a>
+                                                    </h6>
+                                                    <p class="card-text">{{ comment.content }}</p>
+                                                    <small class="text-muted">{{ comment.create_time|date:"Y-m-d H:i" }}</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center text-muted py-4">
+                                    <i class="bi bi-chat-square" style="font-size: 3rem;"></i>
+                                    <p class="mt-2">暂无评论记录</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- 照片记录 -->
+                        <div class="tab-pane fade" id="photos" role="tabpanel" aria-labelledby="photos-tab">
+                            {% if photos %}
+                                <div class="row">
+                                    {% for photo in photos %}
+                                        <div class="col-md-4 mb-3">
+                                            <div class="card h-100">
+                                                <img src="{{ photo.photo.url }}" class="card-img-top" alt="活动照片" style="height: 200px; object-fit: cover;">
+                                                <div class="card-body">
+                                                    <h6 class="card-title">
+                                                        <a href="/member/activity/{{ photo.activity.activity_id }}/" class="text-decoration-none">
+                                                            {{ photo.activity.title }}
+                                                        </a>
+                                                    </h6>
+                                                    {% if photo.description %}
+                                                        <p class="card-text">{{ photo.description }}</p>
+                                                    {% endif %}
+                                                    <small class="text-muted">{{ photo.upload_time|date:"Y-m-d H:i" }}</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center text-muted py-4">
+                                    <i class="bi bi-image" style="font-size: 3rem;"></i>
+                                    <p class="mt-2">暂无上传照片</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- 点赞记录 -->
+                        <div class="tab-pane fade" id="likes" role="tabpanel" aria-labelledby="likes-tab">
+                            {% if likes %}
+                                <div class="row">
+                                    {% for like in likes %}
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card h-100">
+                                                <div class="card-body">
+                                                    <h6 class="card-title">
+                                                        <a href="/member/activity/{{ like.activity.activity_id }}/" class="text-decoration-none">
+                                                            {{ like.activity.title }}
+                                                        </a>
+                                                    </h6>
+                                                    <p class="card-text">
+                                                        <i class="bi bi-heart-fill text-danger"></i> 
+                                                        你点赞了这个活动
+                                                    </p>
+                                                    <small class="text-muted">{{ like.like_time|date:"Y-m-d H:i" }}</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center text-muted py-4">
+                                    <i class="bi bi-heart" style="font-size: 3rem;"></i>
+                                    <p class="mt-2">暂无点赞记录</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- 我的关注 -->
+                        <div class="tab-pane fade" id="following" role="tabpanel" aria-labelledby="following-tab">
+                            {% if following %}
+                                <div class="row">
+                                    {% for follow in following %}
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card h-100">
+                                                <div class="card-body text-center">
+                                                    {% if follow.followed.avatar %}
+                                                        <img src="{{ follow.followed.avatar.url }}" alt="{{ follow.followed.name }}" 
+                                                             class="rounded-circle mb-2" style="width: 60px; height: 60px; object-fit: cover;">
+                                                    {% else %}
+                                                        <div class="bg-secondary rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" 
+                                                             style="width: 60px; height: 60px;">
+                                                            <i class="bi bi-person text-white"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                    <h6 class="card-title">
+                                                        <a href="/profile/{{ follow.followed.member_id }}/" class="text-decoration-none">
+                                                            {{ follow.followed.name }}
+                                                        </a>
+                                                    </h6>
+                                                    {% if follow.followed.nickname %}
+                                                        <p class="card-text small text-muted">{{ follow.followed.nickname }}</p>
+                                                    {% endif %}
+                                                    <p class="card-text small text-muted">
+                                                        {{ follow.followed.club.name }} · {{ follow.followed.get_role_display }}
+                                                    </p>
+                                                    <small class="text-muted">{{ follow.follow_time|date:"Y-m-d H:i" }} 关注</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center text-muted py-4">
+                                    <i class="bi bi-person-plus" style="font-size: 3rem;"></i>
+                                    <p class="mt-2">暂无关注用户</p>
+                                    <p class="small">去 <a href="/member/list/">成员列表</a> 发现更多有趣的人吧！</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

@@ -82,6 +82,8 @@ class Member(models.Model):
     """成员表"""
     member_id = models.CharField(verbose_name="学号", primary_key=True, max_length=30)
     name = models.CharField(verbose_name="姓名", max_length=30, null=False, blank=False)
+    nickname = models.CharField(verbose_name="昵称", max_length=50, null=True, blank=True)
+    avatar = models.ImageField(verbose_name="头像", upload_to='avatars/', null=True, blank=True)
     gender_choices = ((1, "男"), (2, "女"))
     gender = models.SmallIntegerField(verbose_name="性别", choices=gender_choices, null=True, blank=True)
     grade_choices = (
@@ -260,4 +262,79 @@ class Announcement(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Follow(models.Model):
+    """关注表"""
+    follow_id = models.BigAutoField(primary_key=True, verbose_name="关注ID")
+    follower = models.ForeignKey(to="Member", to_field="member_id", related_name="following",
+                                 verbose_name="关注者", null=False, blank=False, on_delete=models.CASCADE)
+    followed = models.ForeignKey(to="Member", to_field="member_id", related_name="followers",
+                                 verbose_name="被关注者", null=False, blank=False, on_delete=models.CASCADE)
+    follow_time = models.DateTimeField(verbose_name="关注时间", null=True, blank=True, default=datetime.datetime.now)
+
+    class Meta:
+        verbose_name = "关注"
+        db_table = "follow"
+        unique_together = [['follower', 'followed']]  # 防止重复关注
+
+    def __str__(self):
+        return f"{self.follower.name} 关注 {self.followed.name}"
+
+
+class ActivityComment(models.Model):
+    """活动评论表"""
+    comment_id = models.BigAutoField(primary_key=True, verbose_name="评论ID")
+    activity = models.ForeignKey(to="Activity", to_field="activity_id", related_name="comments",
+                                verbose_name="活动", null=False, blank=False, on_delete=models.CASCADE)
+    member = models.ForeignKey(to="Member", to_field="member_id", related_name="activity_comments",
+                              verbose_name="评论者", null=False, blank=False, on_delete=models.CASCADE)
+    content = models.TextField(verbose_name="评论内容", null=False, blank=False)
+    create_time = models.DateTimeField(verbose_name="评论时间", null=True, blank=True, default=datetime.datetime.now)
+
+    class Meta:
+        verbose_name = "活动评论"
+        db_table = "activity_comment"
+        ordering = ["create_time"]
+
+    def __str__(self):
+        return f"{self.member.name} 对 {self.activity.title} 的评论"
+
+
+class ActivityPhoto(models.Model):
+    """活动照片表"""
+    photo_id = models.BigAutoField(primary_key=True, verbose_name="照片ID")
+    activity = models.ForeignKey(to="Activity", to_field="activity_id", related_name="photos",
+                                verbose_name="活动", null=False, blank=False, on_delete=models.CASCADE)
+    member = models.ForeignKey(to="Member", to_field="member_id", related_name="activity_photos",
+                              verbose_name="上传者", null=False, blank=False, on_delete=models.CASCADE)
+    photo = models.ImageField(verbose_name="照片", upload_to='activity_photos/', null=False, blank=False)
+    description = models.TextField(verbose_name="照片描述", null=True, blank=True)
+    upload_time = models.DateTimeField(verbose_name="上传时间", null=True, blank=True, default=datetime.datetime.now)
+
+    class Meta:
+        verbose_name = "活动照片"
+        db_table = "activity_photo"
+        ordering = ["-upload_time"]
+
+    def __str__(self):
+        return f"{self.member.name} 上传的 {self.activity.title} 照片"
+
+
+class ActivityLike(models.Model):
+    """活动点赞表"""
+    like_id = models.BigAutoField(primary_key=True, verbose_name="点赞ID")
+    activity = models.ForeignKey(to="Activity", to_field="activity_id", related_name="likes",
+                                verbose_name="活动", null=False, blank=False, on_delete=models.CASCADE)
+    member = models.ForeignKey(to="Member", to_field="member_id", related_name="activity_likes",
+                              verbose_name="点赞者", null=False, blank=False, on_delete=models.CASCADE)
+    like_time = models.DateTimeField(verbose_name="点赞时间", null=True, blank=True, default=datetime.datetime.now)
+
+    class Meta:
+        verbose_name = "活动点赞"
+        db_table = "activity_like"
+        unique_together = [['activity', 'member']]  # 防止重复点赞
+
+    def __str__(self):
+        return f"{self.member.name} 点赞 {self.activity.title}"
 

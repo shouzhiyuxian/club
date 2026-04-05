@@ -1,8 +1,9 @@
 from django import forms
 from app01.utils.bootstrap_modelform import BootstrapModelForm
 from app01.models import (
-    MyAdmin, Club, Department, Role, Member, Activity, ActivityRegistration,
+    MyAdmin, Club, Role, Member, Activity, ActivityRegistration,
     Recruitment, RecruitmentApplication, Announcement,
+    ActivityComment, ActivityPhoto, ActivityLike,
 )
 
 from django.core.exceptions import ValidationError
@@ -99,13 +100,6 @@ class ClubModelForm(BootstrapModelForm):
         return phone
 
 
-# 部门相关表单
-class DepartmentModelForm(BootstrapModelForm):
-    class Meta:
-        model = Department
-        fields = ["name", "club", "description"]
-
-
 # 角色相关表单
 class RoleModelForm(BootstrapModelForm):
     class Meta:
@@ -120,8 +114,8 @@ class MemberModelForm(BootstrapModelForm):
     
     class Meta:
         model = Member
-        fields = ["member_id", "name", "gender", "grade", "major", "phone", "email", 
-                 "club", "department", "role", "join_time", "status", "remark"]
+        fields = ["member_id", "name", "nickname", "avatar", "gender", "grade", "major", "phone", "email", 
+                 "club", "role", "join_time", "status", "remark"]
     
     def clean_phone(self):
         phone = self.cleaned_data.get("phone")
@@ -179,7 +173,7 @@ class RecruitmentApplicationModelForm(BootstrapModelForm):
     class Meta:
         model = RecruitmentApplication
         fields = ["recruitment", "student_id", "name", "gender", "grade", "major", "phone", "email",
-                  "apply_department", "status", "apply_time", "remark"]
+                  "status", "apply_time", "remark"]
     
     def clean_phone(self):
         phone = self.cleaned_data.get("phone")
@@ -197,3 +191,23 @@ class AnnouncementModelForm(BootstrapModelForm):
     class Meta:
         model = Announcement
         fields = ["title", "content", "status", "is_top"]
+
+
+# 活动评论相关表单
+class ActivityCommentForm(BootstrapModelForm):
+    class Meta:
+        model = ActivityComment
+        fields = ["content"]
+        widgets = {
+            "content": forms.Textarea(attrs={"class": "form-control", "rows": 3, "placeholder": "写下你的评论..."}),
+        }
+
+
+# 活动照片相关表单
+class ActivityPhotoForm(BootstrapModelForm):
+    class Meta:
+        model = ActivityPhoto
+        fields = ["photo", "description"]
+        widgets = {
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 2, "placeholder": "照片描述（可选）"}),
+        }

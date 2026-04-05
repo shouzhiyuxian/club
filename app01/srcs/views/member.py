@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django import forms
-from app01.models import Member, Club, Department, Role
+from app01.models import Member, Club, Department, Role, Follow
+from app01.srcs.views.profile import _can_view_profile
 from app01.utils.page_nav import PageNav
 from app01.srcs.forms.form import MemberModelForm
 from app01.srcs.utils.export_excel import export_to_excel
@@ -25,21 +26,30 @@ def _member_queryset(req):
         search_data_dict["name__contains"] = req.GET.get("q")
     club_id = req.GET.get("club_id")
     role_type, club_id_role, _ = get_request_role(req)
-    if role_type == "president" and club_id_role:
-        search_data_dict["club_id"] = club_id_role
-    elif club_id:
-        search_data_dict["club_id"] = club_id
+    
+    # 强制权限控制：非管理员只能看到自己社团的成员
+    if role_type == "admin":
+        # 管理员可以查看所有成员，或按club_id过滤
+        if club_id:
+            search_data_dict["club_id"] = club_id
+    else:
+        # 社长和普通成员只能看到自己社团的成员
+        if club_id_role:
+            search_data_dict["club_id"] = club_id_role
+        else:
+            # 如果没有社团ID，返回空查询集
+            return Member.objects.none()
+    
     return Member.objects.filter(**search_data_dict).order_by("member_id")
 
 
 def member_list(req):
-    """成员列表（社长仅见本社团成员）"""
-    role_type, club_id_role, _ = get_request_role(req)
-    if role_type == "member":
-        return redirect("/member/profile/")
+    """成员列表（社长仅见本社团成员，普通成员仅见同一社团成员）"""
+    role_type, club_id_role, member_id = get_request_role(req)
+    
     if req.GET.get("export") == "1":
         queryset = _member_queryset(req)
-        headers = ["学号", "姓名", "性别", "年级", "专业", "手机", "邮箱", "所属社团", "所属部门", "角色", "加入时间", "状态", "备注"]
+        headers = ["学号", "姓名", "性别", "年级", "专业", "手机", "邮箱", "所属社团", "角色", "加入时间", "状态", "备注"]
         rows = []
         for m in queryset:
             rows.append([
@@ -51,7 +61,6 @@ def member_list(req):
                 m.phone or "",
                 m.email or "",
                 m.club.name if m.club else "",
-                m.department.name if m.department else "",
                 m.role.name if m.role else "",
                 m.join_time,
                 m.get_status_display(),
@@ -62,12 +71,33 @@ def member_list(req):
     queryset = _member_queryset(req)
     page_nav_obj = PageNav(req, queryset)
     clubs = Club.objects.all() if role_type == "admin" else Club.objects.filter(club_id=club_id_role)
+    
+    # 获取当前用户member对象（用于关注状态检查）
+    current_member = None
+    if member_id:
+        current_member = Member.objects.filter(member_id=member_id).first()
+    
+    # 为每个成员添加关注状态和是否可关注状态
+    members_with_follow_status = []
+    if current_member:
+        following_ids = set(Follow.objects.filter(follower=current_member).values_list('followed_id', flat=True))
+        for member in page_nav_obj.page_queryset:
+            member.is_following = member.member_id in following_ids
+            member.can_follow = current_member != member and _can_view_profile(current_member, member)
+            members_with_follow_status.append(member)
+    else:
+        for member in page_nav_obj.page_queryset:
+            member.can_follow = False
+            members_with_follow_status.append(member)
+    
     content = {
-        "queryset": page_nav_obj.page_queryset,
+        "queryset": members_with_follow_status,
         "page_nav_string": page_nav_obj.get_html(),
         "search_data": req.GET.get("q", ""),
         "clubs": clubs,
-        "selected_club_id": str(club_id_role) if role_type == "president" else req.GET.get("club_id", ""),
+        "selected_club_id": str(club_id_role) if role_type in ("president", "member") else req.GET.get("club_id", ""),
+        "can_manage": role_type in ("admin", "president"),  # 是否可以管理成员
+        "current_member": current_member,
     }
     return render(req, "member/member_list.html", content)
 
@@ -82,7 +112,6 @@ def member_add(req):
         if role_type == "president" and club_id_role:
             form.fields["club"].queryset = Club.objects.filter(club_id=club_id_role)
             form.fields["club"].initial = Club.objects.filter(club_id=club_id_role).first()
-            form.fields["department"].queryset = form.fields["department"].queryset.filter(club_id=club_id_role)
         return render(req, "member/member_add.html", {"form": form})
     form = MemberModelForm(data=req.POST)
     if form.is_valid():

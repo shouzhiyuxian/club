@@ -16,7 +16,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from app01 import views
-from app01.srcs.views import myadmin, account, club, member, activity, registration, department, role, recruitment, member_portal, announcement
+from app01.srcs.views import myadmin, account, club, member, activity, registration, role, recruitment, member_portal, announcement, profile
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -39,12 +41,6 @@ urlpatterns = [
     path("club/<int:nid>/edit/", club.club_edit),
     path("club/delete/", club.club_delete),
     path("club/transfer/", club.club_transfer),
-    
-    # 部门管理
-    path("department/list", department.department_list),
-    path("department/add", department.department_add),
-    path("department/<int:nid>/edit/", department.department_edit),
-    path("department/delete/", department.department_delete),
     
     # 角色管理
     path("role/list", role.role_list),
@@ -96,4 +92,9 @@ urlpatterns = [
     path("member/my-registrations/", member_portal.my_registrations),
     path("member/activities/", member_portal.activities_can_register),
     path("member/activities/<int:activity_id>/register/", member_portal.do_register),
-]
+    path("member/activity/<int:activity_id>/", member_portal.activity_detail),
+    
+    # 用户个人主页
+    path("profile/<str:member_id>/", profile.profile_view, name="profile"),
+    path("profile/<str:member_id>/follow/", profile.follow_toggle, name="follow_toggle"),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

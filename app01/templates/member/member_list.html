@@ -5,6 +5,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-7 col-sm-4" >
+            {% if can_manage %}
             <a class="btn btn-success" style="margin: 10px" href="/member/add" target="_blank">
                 <i class="bi bi-plus-circle-fill"></i>
                 添加成员
@@ -13,17 +14,20 @@
                 <i class="bi bi-download"></i>
                 导出 Excel
             </a>
+            {% endif %}
             </div>
             <div class="col-md-5 col-sm-8 ">
                 <form method="get">
                 <div class="d-flex flex-row">
                     <input class="form-control me-2" type="search" name="q" value="{{ search_data }}" style="margin: 10px" placeholder="搜索成员姓名" aria-label="Search">
+                    {% if request.session.info.type == "admin" %}
                     <select class="form-control me-2" name="club_id" style="margin: 10px; width: 150px">
                         <option value="">全部社团</option>
                         {% for club in clubs %}
                         <option value="{{ club.club_id }}" {% if selected_club_id and selected_club_id|stringformat:"s" == club.club_id|stringformat:"s" %}selected{% endif %}>{{ club.name }}</option>
                         {% endfor %}
                     </select>
+                    {% endif %}
                     <button class="btn btn-outline-success" type="submit" style="margin: 10px; width: 100px"><strong>搜索</strong></button>
                 </div>
                 </form>
@@ -38,13 +42,13 @@
                 <table class="table">
                       <thead>
                         <tr>
+                          <th scope="col">头像</th>
                           <th scope="col">学号</th>
                           <th scope="col">姓名</th>
                           <th scope="col">性别</th>
                           <th scope="col">年级</th>
                           <th scope="col">专业</th>
                           <th scope="col">所属社团</th>
-                          <th scope="col">所属部门</th>
                           <th scope="col">角色</th>
                           <th scope="col">状态</th>
                           <th scope="col">操作</th>
@@ -53,21 +57,49 @@
                       <tbody>
                       {% for obj in queryset %}
                         <tr>
+                          <td>
+                            {% if obj.avatar %}
+                              <img src="{{ obj.avatar.url }}" alt="头像" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                            {% else %}
+                              <div class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="fas fa-user text-white" style="font-size: 16px;"></i>
+                              </div>
+                            {% endif %}
+                          </td>
                           <th scope="row">{{ obj.member_id }}</th>
-                          <td>{{ obj.name}}</td>
+                          <td>
+                            <a href="/profile/{{ obj.member_id }}/" class="text-decoration-none">
+                              {{ obj.name }}
+                              {% if obj.nickname %}
+                                <small class="text-muted">({{ obj.nickname }})</small>
+                              {% endif %}
+                            </a>
+                          </td>
                           <td>{{ obj.get_gender_display|default:"未设置"}}</td>
                           <td>{{ obj.get_grade_display|default:"未设置"}}</td>
                           <td>{{ obj.major|default:"未设置"}}</td>
                           <td>{{ obj.club.name|default:"未加入"}}</td>
-                          <td>{{ obj.department.name|default:"未分配"}}</td>
                           <td>{{ obj.role.name|default:"未设置"}}</td>
                           <td>{{ obj.get_status_display}}</td>
                           <td>
+                              <a class="btn btn-info btn-sm" href="/profile/{{ obj.member_id }}/">
+                                <i class="fas fa-user"></i> 主页
+                              </a>
+                              {% if obj.can_follow %}
+                                <button class="btn btn-sm follow-btn {% if obj.is_following %}btn-warning{% else %}btn-outline-warning{% endif %}" 
+                                        data-member-id="{{ obj.member_id }}" 
+                                        data-current-id="{{ current_member.member_id }}">
+                                  <i class="fas fa-user-{% if obj.is_following %}minus{% else %}plus{% endif %}"></i>
+                                  {% if obj.is_following %}取消关注{% else %}关注{% endif %}
+                                </button>
+                              {% endif %}
+                              {% if can_manage %}
                               <a class="btn btn-primary btn-sm" href="/member/{{ obj.member_id }}/edit">编辑</a>
                               {% if request.session.info.type == "admin" %}
                               <a class="btn btn-warning btn-sm" href="/member/{{ obj.member_id }}/reset/">重置密码</a>
                               {% endif %}
                               <a class="btn btn-danger btn-sm" href="/member/delete/?nid={{ obj.member_id }}">删除</a>
+                              {% endif %}
                           </td>
                         </tr>
                       {% endfor %}
@@ -80,5 +112,58 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block js %}
+<script>
+$(document).ready(function() {
+    // 获取CSRF token的函数
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    $('.follow-btn').click(function() {
+        const memberId = $(this).data('member-id');
+        const currentId = $(this).data('current-id');
+        const btn = $(this);
+        const csrftoken = getCookie('csrftoken');
+        
+        $.ajax({
+            url: `/profile/${memberId}/follow/`,
+            type: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken
+            },
+            success: function(data) {
+                if (data.action === 'follow') {
+                    btn.removeClass('btn-outline-warning').addClass('btn-warning');
+                    btn.html('<i class="fas fa-user-minus"></i> 取消关注');
+                    // 更新对象的is_following状态
+                    btn.closest('tr').find('.follow-btn').data('following', true);
+                } else if (data.action === 'unfollow') {
+                    btn.removeClass('btn-warning').addClass('btn-outline-warning');
+                    btn.html('<i class="fas fa-user-plus"></i> 关注');
+                    // 更新对象的is_following状态
+                    btn.closest('tr').find('.follow-btn').data('following', false);
+                }
+            },
+            error: function(xhr) {
+                alert('操作失败：' + (xhr.responseJSON ? xhr.responseJSON.error : '未知错误'));
+            }
+        });
+    });
+});
+</script>
 {% endblock %}
 
