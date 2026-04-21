@@ -37,43 +37,92 @@
         </ul>
         
         <ul class="list-group" style="margin-top: 20px">
-            <li class="list-group-item list-group-item-dark">
-                <i class="bi bi-people-fill"></i>
-                <strong>报名列表</strong>
+            <li class="list-group-item list-group-item-dark d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="bi bi-people-fill"></i>
+                    <strong>报名列表</strong>
+                </div>
             </li>
             <li class="list-group-item">
-                <table class="table">
-                      <thead>
-                        <tr>
-                          <th scope="col">报名ID</th>
-                          <th scope="col">成员姓名</th>
-                          <th scope="col">学号</th>
-                          <th scope="col">报名时间</th>
-                          <th scope="col">状态</th>
-                          <th scope="col">操作</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                      {% for reg in registrations %}
-                        <tr>
-                          <th scope="row">{{ reg.registration_id }}</th>
-                          <td>{{ reg.member.name}}</td>
-                          <td>{{ reg.member.member_id}}</td>
-                          <td>{{ reg.register_time}}</td>
-                          <td>{{ reg.get_status_display}}</td>
-                          <td>
-                              <a class="btn btn-primary btn-sm" href="/registration/{{ reg.registration_id }}/edit">编辑</a>
-                              <a class="btn btn-danger btn-sm" href="/registration/delete/?nid={{ reg.registration_id }}">删除</a>
-                          </td>
-                        </tr>
-                      {% empty %}
-                        <tr>
-                          <td colspan="6" style="text-align: center;">暂无报名记录</td>
-                        </tr>
-                      {% endfor %}
-                      </tbody>
-                    </table>
+                <form method="post" action="/activity/{{ activity.activity_id }}/mark-attended/" id="mark-attended-form">
+                    {% csrf_token %}
+                    <div class="mb-2 d-flex justify-content-between align-items-center">
+                        <div>
+                            <input type="checkbox" class="form-check-input" id="select-all" onchange="toggleSelectAll(this)">
+                            <label class="form-check-label ms-1" for="select-all">全选</label>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-sm" onclick="return confirmMarkAttended()">
+                            <i class="bi bi-check-all"></i> 标记选中为已参加
+                        </button>
+                    </div>
+                    <table class="table">
+                          <thead>
+                            <tr>
+                              <th scope="col"><input type="checkbox" class="form-check-input" id="select-all-header" onchange="toggleSelectAll(this)"></th>
+                              <th scope="col">报名ID</th>
+                              <th scope="col">成员姓名</th>
+                              <th scope="col">学号</th>
+                              <th scope="col">报名时间</th>
+                              <th scope="col">状态</th>
+                              <th scope="col">操作</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                          {% for reg in registrations %}
+                            <tr>
+                              <td>
+                                  {% if reg.status == 1 %}
+                                  <input type="checkbox" class="form-check-input registration-checkbox" name="registration_ids" value="{{ reg.registration_id }}">
+                                  {% endif %}
+                              </td>
+                              <th scope="row">{{ reg.registration_id }}</th>
+                              <td>{{ reg.member.name}}</td>
+                              <td>{{ reg.member.member_id}}</td>
+                              <td>{{ reg.register_time}}</td>
+                              <td>{{ reg.get_status_display}}</td>
+                              <td>
+                                  <a class="btn btn-primary btn-sm" href="/registration/{{ reg.registration_id }}/edit">编辑</a>
+                                  <a class="btn btn-danger btn-sm" href="/registration/delete/?nid={{ reg.registration_id }}" onclick="return confirm('确定删除报名记录吗？')">删除</a>
+                              </td>
+                            </tr>
+                          {% empty %}
+                            <tr>
+                              <td colspan="7" style="text-align: center;">暂无报名记录</td>
+                            </tr>
+                          {% endfor %}
+                          </tbody>
+                        </table>
+                </form>
             </li>
+
+                <script>
+                function toggleSelectAll(source) {
+                    var checkboxes = document.querySelectorAll('.registration-checkbox');
+                    var selectAllHeader = document.getElementById('select-all-header');
+                    var selectAll = document.getElementById('select-all');
+                    
+                    // 根据触发事件的元素确定状态
+                    var isChecked = source ? source.checked : selectAllHeader.checked;
+                    
+                    // 同步两个全选框的状态
+                    selectAllHeader.checked = isChecked;
+                    selectAll.checked = isChecked;
+                    
+                    // 设置所有复选框
+                    checkboxes.forEach(function(checkbox) {
+                        checkbox.checked = isChecked;
+                    });
+                }
+                
+                function confirmMarkAttended() {
+                    var checkboxes = document.querySelectorAll('.registration-checkbox:checked');
+                    if (checkboxes.length === 0) {
+                        alert('请至少选择一名成员');
+                        return false;
+                    }
+                    return confirm('确定要将选中的 ' + checkboxes.length + ' 人标记为已参加吗？');
+                }
+                </script>
         </ul>
         
         <!-- 活动互动内容 -->
@@ -126,9 +175,6 @@
                                                 <div class="d-flex justify-content-between align-items-start">
                                                     <div>
                                                         <strong>{{ comment.member.name }}</strong>
-                                                        {% if comment.member.nickname %}
-                                                            <small class="text-muted">({{ comment.member.nickname }})</small>
-                                                        {% endif %}
                                                     </div>
                                                     <small class="text-muted">{{ comment.create_time|date:"Y-m-d H:i" }}</small>
                                                 </div>
@@ -206,9 +252,6 @@
                                                     </div>
                                                 {% endif %}
                                                 <h6 class="card-title">{{ like.member.name }}</h6>
-                                                {% if like.member.nickname %}
-                                                    <p class="card-text small text-muted">{{ like.member.nickname }}</p>
-                                                {% endif %}
                                                 <p class="card-text small text-muted">
                                                     {{ like.member.club.name }} · {{ like.member.get_role_display }}
                                                 </p>

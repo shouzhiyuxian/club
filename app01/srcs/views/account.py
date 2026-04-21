@@ -7,11 +7,11 @@ from app01.models import MyAdmin, Member
 
 
 class LoginForm(forms.Form):
-    """账号：管理员填用户名，成员填学号"""
+    """统一账号登录"""
     account = forms.CharField(
         label="账号",
         required=True,
-        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "管理员填用户名，成员填学号"}),
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "请输入账号"}),
     )
     password = forms.CharField(
         label="密码",
@@ -35,8 +35,8 @@ def login(req):
     account = form.cleaned_data.get("account").strip()
     pwd_md5 = form.cleaned_data.get("password")
 
-    # 1. 先尝试管理员（user_name + 密码）
-    adm = MyAdmin.objects.filter(user_name=account, password=pwd_md5).first()
+    # 1. 先尝试管理员（account + 密码）
+    adm = MyAdmin.objects.filter(account=account, password=pwd_md5).first()
     if adm:
         req.session["info"] = {
             "type": "admin",

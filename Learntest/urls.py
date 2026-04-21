@@ -41,6 +41,7 @@ urlpatterns = [
     path("club/<int:nid>/edit/", club.club_edit),
     path("club/delete/", club.club_delete),
     path("club/transfer/", club.club_transfer),
+    path("club/presidents/", club.president_view),
     
     # 角色管理
     path("role/list", role.role_list),
@@ -60,6 +61,7 @@ urlpatterns = [
     path("activity/add", activity.activity_add),
     path("activity/<int:nid>/edit/", activity.activity_edit),
     path("activity/<int:nid>/detail/", activity.activity_detail),
+    path("activity/<int:nid>/mark-attended/", activity.activity_mark_attended),
     path("activity/delete/", activity.activity_delete),
     
     # 活动报名管理
@@ -73,11 +75,13 @@ urlpatterns = [
     path("recruitment/add", recruitment.recruitment_add),
     path("recruitment/<int:nid>/edit/", recruitment.recruitment_edit),
     path("recruitment/delete/", recruitment.recruitment_delete),
+    path("recruitment/<int:nid>/apply/", recruitment.recruitment_apply),
     path("recruitment/applications/", recruitment.application_list),
     path("recruitment/applications/add/", recruitment.application_add),
     path("recruitment/applications/<int:nid>/edit/", recruitment.application_edit),
     path("recruitment/applications/delete/", recruitment.application_delete),
     path("recruitment/applications/<int:nid>/approve/", recruitment.application_approve),
+    path("recruitment/applications/<int:nid>/reject/", recruitment.application_reject),
     
     # 公告管理
     path("announcement/list", announcement.announcement_list),
@@ -89,6 +93,9 @@ urlpatterns = [
     # 成员端（普通成员/社长个人视角）
     path("member/profile/", member_portal.member_profile),
     path("member/change-password/", member_portal.member_change_password),
+    path("member/leave-club/", member_portal.leave_club),
+    path("member/discussion/", member_portal.club_discussion),
+    path("member/discussion/<int:discussion_id>/delete/", member_portal.delete_discussion),
     path("member/my-registrations/", member_portal.my_registrations),
     path("member/activities/", member_portal.activities_can_register),
     path("member/activities/<int:activity_id>/register/", member_portal.do_register),

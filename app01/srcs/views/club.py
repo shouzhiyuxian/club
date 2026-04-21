@@ -6,6 +6,41 @@ from app01.srcs.utils.export_excel import export_to_excel
 from app01.srcs.utils.role_helper import get_request_role
 
 
+def _sync_club_president_role(club_obj, president_member_obj):
+    """同步社团社长：成员角色与社团社长姓名保持一致。"""
+    if not club_obj:
+        return
+    
+    role_president = Role.objects.filter(level=1).first()
+    role_member = Role.objects.filter(level=2).first()
+    if not role_president or not role_member:
+        return
+
+    # 确保 club_obj 有主键值
+    if not club_obj.club_id:
+        club_obj.refresh_from_db()
+    
+    club_id = club_obj.club_id
+    if not club_id:
+        return
+
+    # 先把选中的成员设为社长（新社团没有现有社长需要降级）
+    if president_member_obj:
+        # 重新获取成员对象以确保最新状态
+        member = Member.objects.filter(member_id=president_member_obj.member_id).first()
+        if not member:
+            return
+        # 将成员移到本社团，并设为社长角色
+        member.club_id = club_id
+        member.status = 1  # 确保状态为正常
+        member.role = role_president
+        member.save(update_fields=["club_id", "status", "role_id"])
+        # 更新社团表的社长姓名
+        if club_obj.president != member.name:
+            club_obj.president = member.name
+            club_obj.save(update_fields=["president"])
+
+
 def club_list(req):
     """社团列表（社长仅见本社团）"""
     role_type, club_id_role, _ = get_request_role(req)
@@ -21,8 +56,8 @@ def club_list(req):
     
     if req.GET.get("export") == "1":
         status_map = {1: "正常", 2: "暂停", 3: "解散"}
-        headers = ["社团ID", "名称", "简介", "成立日期", "社长", "联系电话", "联系邮箱", "状态", "创建时间"]
-        rows = [[c.club_id, c.name, (c.description or "")[:50], c.established_date, c.president or "", c.contact_phone or "", c.contact_email or "", status_map.get(c.status, ""), c.create_time] for c in queryset]
+        headers = ["社团ID", "名称", "简介", "成立日期", "社长", "状态", "创建时间"]
+        rows = [[c.club_id, c.name, (c.description or "")[:50], c.established_date, c.president or "", status_map.get(c.status, ""), c.create_time] for c in queryset]
         return export_to_excel(rows, headers, filename="社团列表.xlsx", sheet_name="社团")
     
     page_nav_obj = PageNav(req, queryset)
@@ -30,6 +65,7 @@ def club_list(req):
         "queryset": page_nav_obj.page_queryset,
         "page_nav_string": page_nav_obj.get_html(),
         "search_data": search_data,
+        "role_type": role_type,
     }
     return render(req, "club/club_list.html", content)
 
@@ -44,7 +80,8 @@ def club_add(req):
     else:
         form = ClubModelForm(data=req.POST)
         if form.is_valid():
-            form.save()
+            club_obj = form.save()
+            _sync_club_president_role(club_obj, getattr(form, "_president_member_obj", None))
             return redirect("/club/list")
         else:
             return render(req, "club/club_add.html", {"form": form})
@@ -55,7 +92,12 @@ def club_delete(req):
     if get_request_role(req)[0] != "admin":
         return redirect("/club/list")
     nid = req.GET.get("nid")
-    Club.objects.filter(club_id=nid).delete()
+    club_obj = Club.objects.filter(club_id=nid).first()
+    if club_obj:
+        # 将该社团的所有成员状态改为退社，并清除角色
+        from app01.models import Member
+        Member.objects.filter(club_id=nid).update(status=3, role=None)
+        club_obj.delete()
     return redirect("/club/list")
 
 
@@ -73,7 +115,8 @@ def club_edit(req, nid):
     
     form = ClubModelForm(data=req.POST, instance=row_obj)
     if form.is_valid():
-        form.save()
+        club_obj = form.save()
+        _sync_club_president_role(club_obj, getattr(form, "_president_member_obj", None))
         return redirect("/club/list")
     return render(req, "club/club_edit.html", {"form": form})
 
@@ -127,4 +170,17 @@ def club_transfer(req):
     req.session["info"]["role_level"] = 2
     req.session.modified = True
     return redirect("/club/list")
+
+
+def president_view(req):
+    """社长查看（仅管理员）"""
+    role_type, _, _ = get_request_role(req)
+    if role_type != "admin":
+        return redirect("/club/list")
+    presidents = Member.objects.filter(
+        role__level=1,
+        status=1,
+        club__isnull=False
+    ).select_related("club", "role").order_by("club_id", "member_id")
+    return render(req, "club/president_view.html", {"queryset": presidents})
 

@@ -1,69 +1,153 @@
 {% extends "layout.html" %}
 
 {% block content %}
-    <div>
-    <div class="container">
-        <div class="row">
-            <div class="col-md-7 col-sm-4" >
-            <a class="btn btn-success" style="margin: 10px" href="/club/add" target="_blank">
+<div class="container py-4">
+    <!-- 页面标题区 -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="bi bi-people-fill text-primary"></i>
+                社团管理
+            </h2>
+            <p class="text-muted mb-0">管理所有社团信息、状态和社长设置</p>
+        </div>
+        <div class="d-flex gap-2">
+            {% if role_type != "president" %}
+            <a class="btn btn-success" href="/club/add">
                 <i class="bi bi-plus-circle-fill"></i>
                 添加社团
             </a>
-            <a class="btn btn-outline-secondary" style="margin: 10px" href="/club/list?{{ request.GET.urlencode }}&export=1">
+            <a class="btn btn-outline-secondary" href="/club/list?{{ request.GET.urlencode }}&export=1">
                 <i class="bi bi-download"></i>
-                导出 Excel
+                导出
             </a>
-            </div>
-            <div class="col-md-5 col-sm-8 ">
-                <form method="get">
-                <div class="d-flex flex-row">
-                    <input class="form-control me-2" type="search" name="q" value="{{ search_data }}" style="margin: 10px" placeholder="搜索社团名称" aria-label="Search">
-                    <button class="btn btn-outline-success" type="submit" style="margin: 10px; width: 100px"><strong>搜索</strong></button>
-                </div>
-                </form>
-            </div>
-        </div>
-        <ul class="list-group">
-            <li class="list-group-item list-group-item-dark">
-                <i class="bi bi-calendar2-event-fill"></i>
-                <strong>社团列表</strong>
-            </li>
-            <li class="list-group-item">
-                <table class="table">
-                      <thead>
-                        <tr>
-                          <th scope="col">ID</th>
-                          <th scope="col">社团名称</th>
-                          <th scope="col">社长</th>
-                          <th scope="col">联系电话</th>
-                          <th scope="col">成立日期</th>
-                          <th scope="col">状态</th>
-                          <th scope="col">操作</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                      {% for obj in queryset %}
-                        <tr>
-                          <th scope="row">{{ obj.club_id }}</th>
-                          <td>{{ obj.name}}</td>
-                          <td>{{ obj.president|default:"未设置"}}</td>
-                          <td>{{ obj.contact_phone|default:"未设置"}}</td>
-                          <td>{{ obj.established_date|default:"未设置"}}</td>
-                          <td>{{ obj.get_status_display}}</td>
-                          <td>
-                              <a class="btn btn-primary btn-sm" href="/club/{{ obj.club_id }}/edit">编辑</a>
-                              <a class="btn btn-danger btn-sm" href="/club/delete/?nid={{ obj.club_id }}">删除</a>
-                          </td>
-                        </tr>
-                      {% endfor %}
-                      </tbody>
-                    </table>
-            </li>
-        </ul>
-        <div style="display: flex; justify-content: center;">
-                    {{ page_nav_string }}
+            {% endif %}
+            {% if request.session.info.type == "admin" %}
+            <a class="btn btn-outline-primary" href="/club/presidents/">
+                <i class="bi bi-person-badge"></i>
+                社长查看
+            </a>
+            {% endif %}
         </div>
     </div>
+
+    <!-- 统计卡片 -->
+    {% if role_type != "president" %}
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-sm-6">
+            <div class="card bg-primary text-white shadow-sm">
+                <div class="card-body d-flex align-items-center">
+                    <i class="bi bi-building fs-1 me-3 opacity-75"></i>
+                    <div>
+                        <h6 class="mb-0">社团总数</h6>
+                        <h4 class="mb-0">{{ queryset|length }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card bg-success text-white shadow-sm">
+                <div class="card-body d-flex align-items-center">
+                    <i class="bi bi-check-circle fs-1 me-3 opacity-75"></i>
+                    <div>
+                        <h6 class="mb-0">正常运营</h6>
+                        <h4 class="mb-0">{{ queryset|length }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if role_type != "president" %}
+    <!-- 搜索栏 -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-10">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light">
+                            <i class="bi bi-search text-muted"></i>
+                        </span>
+                        <input type="search" class="form-control" name="q" value="{{ search_data }}" placeholder="搜索社团名称...">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-outline-success w-100">
+                        <i class="bi bi-search"></i> 搜索
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 社团卡片列表 -->
+    <div class="row g-4">
+        {% for obj in queryset %}
+        <div class="col-lg-4 col-md-6">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-header bg-white border-0 pt-4 pb-0">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                            <i class="bi bi-people-fill text-primary fs-3"></i>
+                        </div>
+                        <span class="badge {% if obj.status == 1 %}bg-success{% elif obj.status == 2 %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                            {{ obj.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title mb-3">{{ obj.name }}</h5>
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center mb-2 text-muted">
+                            <i class="bi bi-person-badge me-2"></i>
+                            <span>社长: <strong>{{ obj.president|default:"未设置" }}</strong></span>
+                        </div>
+                        <div class="d-flex align-items-center mb-2 text-muted">
+                            <i class="bi bi-people me-2"></i>
+                            <span>成员: <strong>{{ obj.members.count|default:0 }}</strong> 人</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-2 text-muted">
+                            <i class="bi bi-calendar3 me-2"></i>
+                            <span>成立: {{ obj.established_date|default:"未设置" }}</span>
+                        </div>
+
+                    </div>
+                    {% if obj.description %}
+                    <p class="card-text text-secondary small">{{ obj.description|truncatechars:80 }}</p>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-white border-top-0 pt-0 pb-4 px-4">
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-outline-primary flex-fill" href="/club/{{ obj.club_id }}/edit">
+                            <i class="bi bi-pencil"></i> 编辑
+                        </a>
+                        <a class="btn btn-outline-danger" href="/club/delete/?nid={{ obj.club_id }}" onclick="return confirm('确定要解散社团【{{ obj.name }}】吗？此操作不可恢复！')">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-building text-muted" style="font-size: 4rem;"></i>
+                    <h5 class="mt-3 text-muted">暂无社团</h5>
+                    <p class="text-muted">点击上方"添加社团"按钮创建第一个社团</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- 分页 -->
+    {% if page_nav_string %}
+    <div class="d-flex justify-content-center mt-4">
+        {{ page_nav_string }}
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
-

@@ -29,6 +29,8 @@ from django.core.validators import RegexValidator
 
 from app01.utils.md5 import get_md5
 class MyadminForm(BootstrapModelForm):
+    account = forms.CharField(required=True, label="登录账号",
+                              widget=forms.TextInput(attrs={"class": "form-control", }))
     user_name = forms.CharField(required=False, label="管理员姓名",
                                 widget=forms.TextInput(attrs={"class": "form-control", }))
     password = forms.CharField(required=True, label="输入密码", min_length=8,
@@ -37,7 +39,7 @@ class MyadminForm(BootstrapModelForm):
                                 widget=forms.PasswordInput(attrs={"class": "form-control", }))
     class Meta:
         model = MyAdmin  # 这里必须是model字母，不能错
-        fields = "__all__"  # 这里必须是fields字母，不能错
+        fields = ["account", "user_name", "password", "confirm_pwd", "id"]  # 这里必须是fields字母，不能错
         # exclude = ["mobile"]
 
     def clean_confirm_pwd(self):
@@ -53,11 +55,27 @@ class MyadminForm(BootstrapModelForm):
         # 返回什么数据库里存什么
         return get_md5(pwd)
 
+    def clean_account(self):
+        account = self.cleaned_data.get("account")
+        if MyAdmin.objects.filter(account=account).exists():
+            raise ValidationError("该账号已存在")
+        return account
+
 
 class MyadminFormEdit(BootstrapModelForm):
+    account = forms.CharField(required=True, label="登录账号",
+                              widget=forms.TextInput(attrs={"class": "form-control", }))
     class Meta:
         model = MyAdmin  # 这里必须是model字母，不能错
-        fields = ["user_name"]  # 这里必须是fields字母，不能错
+        fields = ["account", "user_name"]  # 这里必须是fields字母，不能错
+
+    def clean_account(self):
+        account = self.cleaned_data.get("account")
+        # 排除当前实例，检查其他记录是否有相同账号
+        instance_id = self.instance.id if self.instance else None
+        if MyAdmin.objects.filter(account=account).exclude(id=instance_id).exists():
+            raise ValidationError("该账号已存在")
+        return account
 
 
 class MyadminFormReset(BootstrapModelForm):
@@ -88,18 +106,57 @@ class MyadminFormReset(BootstrapModelForm):
 class ClubModelForm(BootstrapModelForm):
     established_date = forms.DateField(required=False,
                                        widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}))
+    president = forms.ChoiceField(
+        required=False,
+        label="社长",
+        choices=[],
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
     
     class Meta:
         model = Club
-        fields = ["name", "description", "established_date", "president", "contact_phone", "contact_email", "status"]
+        fields = ["name", "description", "established_date", "president", "status"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # 编辑时优先限制为该社团成员；新增时只显示未加入社团的人
+        # 判断是新增还是编辑：有 pk 说明是编辑
+        is_edit = self.instance and self.instance.pk
+        if is_edit:
+            # 编辑时只显示本社团成员
+            members_qs = Member.objects.filter(club_id=self.instance.club_id).order_by("member_id")
+        else:
+            # 新增时只显示未加入任何社团的成员
+            members_qs = Member.objects.filter(club__isnull=True).order_by("member_id")
+        choices = [("", "请选择社长")] + [
+            (m.member_id, f"{m.name}（{m.member_id}）")
+            for m in members_qs
+        ]
+        self.fields["president"].choices = choices
+        self._president_member_obj = None
+
+        # 回显当前社长：按本社团 + 姓名反查到成员学号
+        if self.instance and self.instance.club_id and self.instance.president:
+            current = Member.objects.filter(
+                club_id=self.instance.club_id,
+                name=self.instance.president,
+                status=1,
+            ).order_by("member_id").first()
+            if current:
+                self.initial["president"] = current.member_id
+
+    def clean_president(self):
+        member_id = (self.cleaned_data.get("president") or "").strip()
+        if not member_id:
+            self._president_member_obj = None
+            return ""
+        member_obj = Member.objects.filter(member_id=member_id).select_related("club").first()
+        if not member_obj:
+            raise ValidationError("所选社长成员不存在")
+        self._president_member_obj = member_obj
+        # 模型字段仍存社长姓名
+        return member_obj.name
     
-    def clean_contact_phone(self):
-        phone = self.cleaned_data.get("contact_phone")
-        if phone and len(phone) != 11:
-            raise ValidationError("手机号格式错误，应为11位数字")
-        return phone
-
-
 # 角色相关表单
 class RoleModelForm(BootstrapModelForm):
     class Meta:
@@ -114,7 +171,7 @@ class MemberModelForm(BootstrapModelForm):
     
     class Meta:
         model = Member
-        fields = ["member_id", "name", "nickname", "avatar", "gender", "grade", "major", "phone", "email", 
+        fields = ["member_id", "name", "avatar", "gender", "grade", "major", "phone", "email",
                  "club", "role", "join_time", "status", "remark"]
     
     def clean_phone(self):
@@ -128,6 +185,23 @@ class MemberModelForm(BootstrapModelForm):
         if not member_id:
             raise ValidationError("学号不能为空")
         return member_id
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        club = cleaned_data.get("club")
+        role = cleaned_data.get("role")
+        
+        # 如果没加入社团，角色必须为NULL（未设置）
+        if not club:
+            cleaned_data["role"] = None
+        # 如果加入了社团但没有选角色，默认设为普通成员
+        elif club and not role:
+            from app01.models import Role
+            role_member = Role.objects.filter(level=2).first()
+            if role_member:
+                cleaned_data["role"] = role_member
+        
+        return cleaned_data
 
 
 # 活动相关表单
@@ -141,6 +215,17 @@ class ActivityModelForm(BootstrapModelForm):
         model = Activity
         fields = ["title", "club", "description", "location", "start_time", "end_time", 
                  "max_participants", "organizer", "status"]
+    
+    def __init__(self, *args, club_id=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        # 限制组织者只能选择本社团的成员
+        if club_id:
+            self.fields["organizer"].queryset = Member.objects.filter(club_id=club_id, status=1)
+        elif self.instance and self.instance.club_id:
+            self.fields["organizer"].queryset = Member.objects.filter(club_id=self.instance.club_id, status=1)
+        else:
+            # 如果没有指定社团，显示所有在团成员
+            self.fields["organizer"].queryset = Member.objects.filter(status=1)
 
 
 # 活动报名相关表单

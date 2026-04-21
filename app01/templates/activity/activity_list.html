@@ -1,78 +1,185 @@
 {% extends "layout.html" %}
 
 {% block content %}
-    <div>
-    <div class="container">
-        <div class="row">
-            <div class="col-md-7 col-sm-4" >
-            <a class="btn btn-success" style="margin: 10px" href="/activity/add" target="_blank">
+<div class="container py-4">
+    <!-- 页面标题 -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="bi bi-calendar2-event-fill text-success"></i>
+                活动管理
+            </h2>
+            <p class="text-muted mb-0">管理社团活动信息、报名和状态</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-success" href="/activity/add" target="_blank">
                 <i class="bi bi-plus-circle-fill"></i>
                 添加活动
             </a>
-            <a class="btn btn-outline-secondary" style="margin: 10px" href="/activity/list?{{ request.GET.urlencode }}&export=1">
+            <a class="btn btn-outline-secondary" href="/activity/list?{{ request.GET.urlencode }}&export=1">
                 <i class="bi bi-download"></i>
                 导出 Excel
             </a>
-            </div>
-            <div class="col-md-5 col-sm-8 ">
-                <form method="get">
-                <div class="d-flex flex-row">
-                    <input class="form-control me-2" type="search" name="q" value="{{ search_data }}" style="margin: 10px" placeholder="搜索活动名称" aria-label="Search">
-                    <select class="form-control me-2" name="club_id" style="margin: 10px; width: 150px">
+        </div>
+    </div>
+
+    <!-- 搜索栏 -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="bi bi-search text-muted"></i>
+                        </span>
+                        <input type="search" class="form-control border-start-0" name="q" value="{{ search_data }}" placeholder="搜索活动名称">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <select class="form-select" name="club_id">
                         <option value="">全部社团</option>
                         {% for club in clubs %}
                         <option value="{{ club.club_id }}" {% if selected_club_id and selected_club_id|stringformat:"s" == club.club_id|stringformat:"s" %}selected{% endif %}>{{ club.name }}</option>
                         {% endfor %}
                     </select>
-                    <button class="btn btn-outline-success" type="submit" style="margin: 10px; width: 100px"><strong>搜索</strong></button>
                 </div>
-                </form>
-            </div>
-        </div>
-        <ul class="list-group">
-            <li class="list-group-item list-group-item-dark">
-                <i class="bi bi-calendar2-event-fill"></i>
-                <strong>活动列表</strong>
-            </li>
-            <li class="list-group-item">
-                <table class="table">
-                      <thead>
-                        <tr>
-                          <th scope="col">ID</th>
-                          <th scope="col">活动名称</th>
-                          <th scope="col">所属社团</th>
-                          <th scope="col">活动地点</th>
-                          <th scope="col">开始时间</th>
-                          <th scope="col">参与人数</th>
-                          <th scope="col">状态</th>
-                          <th scope="col">操作</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                      {% for obj in queryset %}
-                        <tr>
-                          <th scope="row">{{ obj.activity_id }}</th>
-                          <td>{{ obj.title}}</td>
-                          <td>{{ obj.club.name|default:"未设置"}}</td>
-                          <td>{{ obj.location|default:"未设置"}}</td>
-                          <td>{{ obj.start_time|default:"未设置"}}</td>
-                          <td>{{ obj.current_participants }}/{{ obj.max_participants|default:"不限"}}</td>
-                          <td>{{ obj.get_status_display}}</td>
-                          <td>
-                              <a class="btn btn-info btn-sm" href="/activity/{{ obj.activity_id }}/detail">详情</a>
-                              <a class="btn btn-primary btn-sm" href="/activity/{{ obj.activity_id }}/edit">编辑</a>
-                              <a class="btn btn-danger btn-sm" href="/activity/delete/?nid={{ obj.activity_id }}">删除</a>
-                          </td>
-                        </tr>
-                      {% endfor %}
-                      </tbody>
-                    </table>
-            </li>
-        </ul>
-        <div style="display: flex; justify-content: center;">
-                    {{ page_nav_string }}
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="bi bi-search"></i> 搜索
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
-</div>
-{% endblock %}
 
+    <!-- 活动卡片网格 -->
+    <div class="row g-4">
+        {% for obj in queryset %}
+        <div class="col-xl-4 col-lg-6 col-md-6">
+            <div class="card h-100 shadow-sm border-0 activity-card">
+                <div class="card-header bg-white border-0 pt-4 pb-0">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="activity-icon bg-gradient-success rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-calendar-event text-white fs-3"></i>
+                        </div>
+                        {% if obj.status == 1 %}
+                        <span class="badge bg-warning">报名中</span>
+                        {% elif obj.status == 2 %}
+                        <span class="badge bg-info">进行中</span>
+                        {% elif obj.status == 3 %}
+                        <span class="badge bg-success">已结束</span>
+                        {% elif obj.status == 4 %}
+                        <span class="badge bg-danger">已取消</span>
+                        {% else %}
+                        <span class="badge bg-secondary">{{ obj.get_status_display }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title mb-2">
+                        <a href="/activity/{{ obj.activity_id }}/detail" class="text-decoration-none text-dark">
+                            {{ obj.title }}
+                        </a>
+                    </h5>
+                    <p class="text-muted small mb-3">
+                        <i class="bi bi-building me-1"></i>
+                        {{ obj.club.name|default:"未设置" }}
+                    </p>
+                    
+                    <div class="activity-info">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-geo-alt text-success me-2"></i>
+                            <span>{{ obj.location|default:"未设置" }}</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-clock text-success me-2"></i>
+                            <span>{{ obj.start_time|default:"未设置" }}</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-people text-success me-2"></i>
+                            <span>{{ obj.current_participants }}/{{ obj.max_participants|default:"不限" }} 人</span>
+                        </div>
+                    </div>
+
+                    <!-- 参与人数进度条 -->
+                    {% if obj.max_participants %}
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>参与人数</span>
+                            <span>{{ obj.current_participants }}/{{ obj.max_participants }}</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            {% widthratio obj.current_participants obj.max_participants 100 as participation_percent %}
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ participation_percent }}%"></div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-white border-top-0 pt-0">
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-outline-info btn-sm flex-fill" href="/activity/{{ obj.activity_id }}/detail">
+                            <i class="bi bi-eye"></i> 详情
+                        </a>
+                        <a class="btn btn-outline-primary btn-sm flex-fill" href="/activity/{{ obj.activity_id }}/edit">
+                            <i class="bi bi-pencil"></i> 编辑
+                        </a>
+                        <a class="btn btn-outline-danger btn-sm" href="/activity/delete/?nid={{ obj.activity_id }}" onclick="return confirm('确定删除活动「{{ obj.title }}」吗？')">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-calendar-x text-muted" style="font-size: 4rem;"></i>
+                    <h5 class="mt-3 text-muted">暂无活动</h5>
+                    <p class="text-muted">点击上方"添加活动"按钮创建第一个活动</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- 分页 -->
+    {% if page_nav_string %}
+    <div class="d-flex justify-content-center mt-4">
+        {{ page_nav_string }}
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.activity-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.activity-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+.activity-icon {
+    width: 60px;
+    height: 60px;
+}
+.bg-gradient-success {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+.activity-info {
+    font-size: 0.9rem;
+}
+.activity-info i {
+    width: 20px;
+    text-align: center;
+}
+.progress {
+    background-color: #e9ecef;
+    border-radius: 3px;
+}
+.progress-bar {
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+</style>
+{% endblock %}

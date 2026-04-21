@@ -5,6 +5,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-7 col-sm-4">
+                {% if role_type != "member" %}
                 <a class="btn btn-success" style="margin: 10px" href="/recruitment/applications/add/">
                     <i class="bi bi-plus-circle-fill"></i>
                     添加报名
@@ -17,26 +18,7 @@
                     <i class="bi bi-download"></i>
                     导出 Excel
                 </a>
-            </div>
-            <div class="col-md-5 col-sm-8">
-                <form method="get">
-                    <div class="d-flex flex-row flex-wrap">
-                        <input class="form-control me-2" type="search" name="q" value="{{ search_data }}" style="margin: 10px; width: 120px" placeholder="姓名">
-                        <select class="form-control me-2" name="recruitment_id" style="margin: 10px; width: 160px">
-                            <option value="">全部批次</option>
-                            {% for r in recruitments %}
-                            <option value="{{ r.recruitment_id }}" {% if selected_recruitment_id and selected_recruitment_id|stringformat:"s" == r.recruitment_id|stringformat:"s" %}selected{% endif %}>{{ r.club.name }} - {{ r.title }}</option>
-                            {% endfor %}
-                        </select>
-                        <select class="form-control me-2" name="status" style="margin: 10px; width: 100px">
-                            <option value="">全部状态</option>
-                            <option value="1" {% if selected_status == "1" %}selected{% endif %}>待审核</option>
-                            <option value="2" {% if selected_status == "2" %}selected{% endif %}>已通过</option>
-                            <option value="3" {% if selected_status == "3" %}selected{% endif %}>已拒绝</option>
-                        </select>
-                        <button class="btn btn-outline-success" type="submit" style="margin: 10px; width: 80px"><strong>筛选</strong></button>
-                    </div>
-                </form>
+                {% endif %}
             </div>
         </div>
         <ul class="list-group">
@@ -71,9 +53,10 @@
                             <td>
                                 {% if obj.status == 1 %}
                                 <a class="btn btn-success btn-sm" href="/recruitment/applications/{{ obj.application_id }}/approve/">通过</a>
+                                <a class="btn btn-warning btn-sm" href="/recruitment/applications/{{ obj.application_id }}/reject/">拒绝</a>
+                                {% else %}
+                                <span class="text-muted">已审核</span>
                                 {% endif %}
-                                <a class="btn btn-primary btn-sm" href="/recruitment/applications/{{ obj.application_id }}/edit/">编辑</a>
-                                <a class="btn btn-danger btn-sm" href="/recruitment/applications/delete/?nid={{ obj.application_id }}">删除</a>
                             </td>
                         </tr>
                         {% endfor %}

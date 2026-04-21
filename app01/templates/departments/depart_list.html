@@ -30,7 +30,7 @@
                           <td>{{ obj.title}}</td>
                           <td>
                               <a class="btn btn-primary btn-sm" href="/depart/{{ obj.department_id }}/edit">编辑</a>
-                              <a class="btn btn-danger btn-sm" href="/depart/delete/?nid={{ obj.department_id }}">删除</a>
+                              <a class="btn btn-danger btn-sm" href="/depart/delete/?nid={{ obj.department_id }}" onclick="return confirm('确定删除部门 {{ obj.title }} 吗？')">删除</a>
                           </td>
                         </tr>
                       {% endfor %}

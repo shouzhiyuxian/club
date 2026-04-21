@@ -139,6 +139,7 @@
   </div>
   {% endif %}
   <div class="row g-3 mb-4">
+    {% if role_type != "president" %}
     <div class="col-sm-6 col-xl-3">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body d-flex align-items-center">
@@ -151,6 +152,7 @@
         <div class="card-footer bg-transparent border-0 py-2"><a href="/club/list" class="text-decoration-none small">社团管理 <i class="bi bi-arrow-right"></i></a></div>
       </div>
     </div>
+    {% endif %}
     <div class="col-sm-6 col-xl-3">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body d-flex align-items-center">

@@ -48,7 +48,7 @@
                           <td>{{ obj.club.name|default:"未设置"}}</td>
                           <td>
                               <a class="btn btn-primary btn-sm" href="/department/{{ obj.department_id }}/edit">编辑</a>
-                              <a class="btn btn-danger btn-sm" href="/department/delete/?nid={{ obj.department_id }}">删除</a>
+                              <a class="btn btn-danger btn-sm" href="/department/delete/?nid={{ obj.department_id }}" onclick="return confirm('确定删除部门 {{ obj.name }} 吗？')">删除</a>
                           </td>
                         </tr>
                       {% endfor %}

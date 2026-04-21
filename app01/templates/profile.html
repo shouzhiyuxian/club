@@ -3,52 +3,67 @@
 {% block title %}个人主页 - {% if is_admin_profile %}{{ target_admin.user_name }}{% else %}{{ target_member.name }}{% endif %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <!-- 左侧用户信息 -->
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body text-center">
+<div class="container py-4">
+    <div class="row g-4">
+        <!-- 左侧用户信息卡片 -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 profile-card">
+                <div class="card-body text-center p-4">
                     {% if is_admin_profile %}
-                        <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 120px; height: 120px;">
-                            <i class="fas fa-user-shield fa-3x text-white"></i>
+                        <!-- 管理员头像 -->
+                        <div class="profile-avatar-wrapper mx-auto mb-3">
+                            <div class="profile-avatar bg-gradient-admin rounded-circle d-flex align-items-center justify-content-center">
+                                <i class="bi bi-shield-lock text-white" style="font-size: 3rem;"></i>
+                            </div>
                         </div>
-                        <h4 class="card-title">{{ target_admin.user_name }}</h4>
-                        <p class="text-muted">管理员 ({{ target_admin.id }})</p>
+                        <h4 class="card-title mb-1">{{ target_admin.user_name }}</h4>
+                        <p class="text-muted mb-2">{{ target_admin.id }}</p>
                         <span class="badge bg-secondary">管理员</span>
                     {% else %}
-                        {% if target_member.avatar %}
-                            <img src="{{ target_member.avatar.url }}" alt="头像" class="rounded-circle mb-3" style="width: 120px; height: 120px; object-fit: cover;">
-                        {% else %}
-                            <div class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 120px; height: 120px;">
-                                <i class="fas fa-user fa-3x text-white"></i>
-                            </div>
-                        {% endif %}
-                        <h4 class="card-title">{{ target_member.nickname|default:target_member.name }}</h4>
-                        <p class="text-muted">{{ target_member.name }} ({{ target_member.member_id }})</p>
+                        <!-- 成员头像 -->
+                        <div class="profile-avatar-wrapper mx-auto mb-3">
+                            {% if target_member.avatar %}
+                                <img src="{{ target_member.avatar.url }}" alt="头像" class="profile-avatar rounded-circle">
+                            {% else %}
+                                <div class="profile-avatar bg-gradient-primary rounded-circle d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-person-fill text-white" style="font-size: 3rem;"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <h4 class="card-title mb-1">{{ target_member.name }}</h4>
+                        <p class="text-muted mb-2">{{ target_member.member_id }}</p>
                         
                         {% if target_member.club %}
-                            <p><i class="fas fa-users"></i> {{ target_member.club.name }}</p>
+                            <div class="mb-3">
+                                <span class="badge bg-primary">
+                                    <i class="bi bi-building me-1"></i>{{ target_member.club.name }}
+                                </span>
+                                {% if target_member.role %}
+                                    <span class="badge {% if target_member.role.level == 1 %}bg-danger{% else %}bg-info{% endif %} ms-1">
+                                        {{ target_member.role.name }}
+                                    </span>
+                                {% endif %}
+                            </div>
                         {% endif %}
-                        
 
-                        <div class="row text-center mt-3">
-                            <div class="col-6">
-                                <div class="h5 mb-0">{{ following_count }}</div>
+                        <!-- 关注和粉丝统计 -->
+                        <div class="row text-center mt-3 mb-3">
+                            <div class="col-6 border-end">
+                                <div class="h4 mb-0 text-primary">{{ following_count }}</div>
                                 <small class="text-muted">关注</small>
                             </div>
                             <div class="col-6">
-                                <div class="h5 mb-0">{{ followers_count }}</div>
+                                <div class="h4 mb-0 text-primary">{{ followers_count }}</div>
                                 <small class="text-muted">粉丝</small>
                             </div>
                         </div>
                         
                         {% if not is_own_profile %}
-                            <button id="follow-btn" class="btn btn-primary mt-3" data-member-id="{{ target_member.member_id }}">
+                            <button id="follow-btn" class="btn btn-primary w-100" data-member-id="{{ target_member.member_id }}">
                                 {% if is_following %}
-                                    <i class="fas fa-user-minus"></i> 取消关注
+                                    <i class="bi bi-person-dash"></i> 取消关注
                                 {% else %}
-                                    <i class="fas fa-user-plus"></i> 关注
+                                    <i class="bi bi-person-plus"></i> 关注
                                 {% endif %}
                             </button>
                         {% endif %}
@@ -57,93 +72,140 @@
             </div>
             
             {% if not is_admin_profile %}
-            <!-- 基本信息 -->
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h5 class="mb-0">基本信息</h5>
+            <!-- 基本信息卡片 -->
+            <div class="card shadow-sm border-0 mt-4 profile-card">
+                <div class="card-header bg-white border-0 pt-4 pb-0">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle text-primary me-2"></i>基本信息
+                    </h5>
                 </div>
                 <div class="card-body">
-                    <p><strong>性别：</strong>{{ target_member.get_gender_display }}</p>
-                    <p><strong>年级：</strong>{{ target_member.get_grade_display }}</p>
-                    <p><strong>专业：</strong>{{ target_member.major|default:"未填写" }}</p>
-                    <p><strong>手机号：</strong>{{ target_member.phone|default:"未填写" }}</p>
-                    <p><strong>邮箱：</strong>{{ target_member.email|default:"未填写" }}</p>
-                    <p><strong>加入时间：</strong>{{ target_member.join_time|date:"Y-m-d" }}</p>
-                    <p><strong>状态：</strong>{{ target_member.get_status_display }}</p>
+                    <div class="profile-info-item">
+                        <i class="bi bi-gender-ambiguous text-primary"></i>
+                        <div>
+                            <small class="text-muted">性别</small>
+                            <p class="mb-0">{{ target_member.get_gender_display|default:"未填写" }}</p>
+                        </div>
+                    </div>
+                    <div class="profile-info-item">
+                        <i class="bi bi-mortarboard text-primary"></i>
+                        <div>
+                            <small class="text-muted">年级</small>
+                            <p class="mb-0">{{ target_member.get_grade_display|default:"未填写" }}</p>
+                        </div>
+                    </div>
+                    <div class="profile-info-item">
+                        <i class="bi bi-book text-primary"></i>
+                        <div>
+                            <small class="text-muted">专业</small>
+                            <p class="mb-0">{{ target_member.major|default:"未填写" }}</p>
+                        </div>
+                    </div>
+                    <div class="profile-info-item">
+                        <i class="bi bi-telephone text-primary"></i>
+                        <div>
+                            <small class="text-muted">手机号</small>
+                            <p class="mb-0">{{ target_member.phone|default:"未填写" }}</p>
+                        </div>
+                    </div>
+                    <div class="profile-info-item">
+                        <i class="bi bi-envelope text-primary"></i>
+                        <div>
+                            <small class="text-muted">邮箱</small>
+                            <p class="mb-0">{{ target_member.email|default:"未填写" }}</p>
+                        </div>
+                    </div>
+                    <div class="profile-info-item mb-0">
+                        <i class="bi bi-calendar-check text-primary"></i>
+                        <div>
+                            <small class="text-muted">加入时间</small>
+                            <p class="mb-0">{{ target_member.join_time|date:"Y-m-d" }}</p>
+                        </div>
+                    </div>
                 </div>
             </div>
             {% endif %}
         </div>
         
-        <!-- 右侧内容 -->
-        <div class="col-md-8">
+        <!-- 右侧内容区 -->
+        <div class="col-lg-8">
             {% if not is_admin_profile %}
-            <!-- 加入的社团 -->
-            {% if joined_clubs %}
-            <div class="card mb-3">
-                <div class="card-header">
-                    <h5 class="mb-0">加入的社团</h5>
-                </div>
-                <div class="card-body">
-                    {% for club in joined_clubs %}
-                        <div class="d-flex align-items-center mb-2">
-                            <i class="fas fa-users text-primary me-2"></i>
-                            <span>{{ club.name }}</span>
-                            {% if club.description %}
-                                <small class="text-muted ms-2">{{ club.description }}</small>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-            
-            <!-- 参加过的活动 -->
-            <div class="card mb-3">
-                <div class="card-header">
-                    <h5 class="mb-0">参加过的活动</h5>
+            <!-- 活动参与历史 -->
+            <div class="card shadow-sm border-0 profile-card">
+                <div class="card-header bg-white border-0 pt-4">
+                    <h5 class="mb-0">
+                        <i class="bi bi-calendar-event text-success me-2"></i>活动参与历史
+                    </h5>
                 </div>
                 <div class="card-body">
                     {% if participated_activities %}
-                        <div class="list-group">
+                        <div class="row g-3">
                             {% for reg in participated_activities %}
-                                <div class="list-group-item">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <h6 class="mb-1">{{ reg.activity.title }}</h6>
-                                        <small>{{ reg.register_time|date:"Y-m-d" }}</small>
+                                <div class="col-md-6">
+                                    <div class="card h-100 border activity-card">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <h6 class="card-title mb-0">
+                                                    <a href="/member/activity/{{ reg.activity.activity_id }}/" class="text-decoration-none">
+                                                        {{ reg.activity.title }}
+                                                    </a>
+                                                </h6>
+                                                {% if reg.status == 1 %}
+                                                    <span class="badge bg-primary">已报名</span>
+                                                {% elif reg.status == 2 %}
+                                                    <span class="badge bg-success">已参加</span>
+                                                {% elif reg.status == 3 %}
+                                                    <span class="badge bg-secondary">已取消</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">未参加</span>
+                                                {% endif %}
+                                            </div>
+                                            <p class="card-text small text-muted mb-2">{{ reg.activity.description|truncatechars:60 }}</p>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small class="text-muted">
+                                                    <i class="bi bi-building me-1"></i>{{ reg.activity.club.name|default:"未设置" }}
+                                                </small>
+                                                <small class="text-muted">{{ reg.register_time|date:"Y-m-d" }}</small>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <p class="mb-1">{{ reg.activity.description|truncatechars:100 }}</p>
-                                    <small class="text-muted">
-                                        社团：{{ reg.activity.club.name }} | 
-                                        状态：{{ reg.get_status_display }}
-                                    </small>
                                 </div>
                             {% endfor %}
                         </div>
                     {% else %}
-                        <p class="text-muted">暂无参加的活动</p>
+                        <div class="text-center text-muted py-5">
+                            <i class="bi bi-calendar-x" style="font-size: 3rem;"></i>
+                            <p class="mt-3">暂无参加的活动</p>
+                        </div>
                     {% endif %}
                 </div>
             </div>
             
             <!-- 共同活动（仅同一社团非自己时显示） -->
             {% if common_activities %}
-            <div class="card mb-3">
-                <div class="card-header">
-                    <h5 class="mb-0">共同参与的活动</h5>
+            <div class="card shadow-sm border-0 mt-4 profile-card">
+                <div class="card-header bg-white border-0 pt-4">
+                    <h5 class="mb-0">
+                        <i class="bi bi-people-fill text-info me-2"></i>共同参与的活动
+                    </h5>
                 </div>
                 <div class="card-body">
-                    <div class="list-group">
+                    <div class="row g-3">
                         {% for activity in common_activities %}
-                            <div class="list-group-item">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1">{{ activity.title }}</h6>
-                                    <small>{{ activity.create_time|date:"Y-m-d" }}</small>
+                            <div class="col-md-6">
+                                <div class="card h-100 border activity-card">
+                                    <div class="card-body">
+                                        <h6 class="card-title mb-2">
+                                            <a href="/member/activity/{{ activity.activity_id }}/" class="text-decoration-none">
+                                                {{ activity.title }}
+                                            </a>
+                                        </h6>
+                                        <p class="card-text small text-muted mb-2">{{ activity.description|truncatechars:60 }}</p>
+                                        <small class="text-muted">
+                                            <i class="bi bi-building me-1"></i>{{ activity.club.name|default:"未设置" }}
+                                        </small>
+                                    </div>
                                 </div>
-                                <p class="mb-1">{{ activity.description|truncatechars:100 }}</p>
-                                <small class="text-muted">
-                                    社团：{{ activity.club.name }}
-                                </small>
                             </div>
                         {% endfor %}
                     </div>
@@ -152,20 +214,83 @@
             {% endif %}
             {% else %}
             <!-- 管理员信息 -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">管理员信息</h5>
+            <div class="card shadow-sm border-0 profile-card">
+                <div class="card-header bg-white border-0 pt-4">
+                    <h5 class="mb-0">
+                        <i class="bi bi-shield-lock text-secondary me-2"></i>管理员信息
+                    </h5>
                 </div>
                 <div class="card-body">
-                    <p><strong>管理员账号：</strong>{{ target_admin.id }}</p>
-                    <p><strong>管理员姓名：</strong>{{ target_admin.user_name }}</p>
-                    <p class="text-muted">系统管理员，负责平台整体管理</p>
+                    <div class="profile-info-item">
+                        <i class="bi bi-person text-secondary"></i>
+                        <div>
+                            <small class="text-muted">管理员账号</small>
+                            <p class="mb-0">{{ target_admin.id }}</p>
+                        </div>
+                    </div>
+                    <div class="profile-info-item">
+                        <i class="bi bi-person-badge text-secondary"></i>
+                        <div>
+                            <small class="text-muted">管理员姓名</small>
+                            <p class="mb-0">{{ target_admin.user_name }}</p>
+                        </div>
+                    </div>
+                    <div class="alert alert-info mt-3 mb-0">
+                        <i class="bi bi-info-circle me-2"></i>
+                        系统管理员，负责平台整体管理
+                    </div>
                 </div>
             </div>
             {% endif %}
         </div>
     </div>
 </div>
+
+<style>
+.profile-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.profile-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+}
+.profile-avatar-wrapper {
+    width: 120px;
+    height: 120px;
+}
+.profile-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+.bg-gradient-admin {
+    background: linear-gradient(135deg, #434343 0%, #000000 100%);
+}
+.profile-info-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+.profile-info-item:last-child {
+    border-bottom: none;
+}
+.profile-info-item i {
+    font-size: 1.2rem;
+    margin-top: 2px;
+}
+.activity-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.activity-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1) !important;
+}
+</style>
 
 {% if not is_admin_profile %}
 <script>
@@ -176,9 +301,9 @@ $(document).ready(function() {
         
         $.post(`/profile/${memberId}/follow/`, {}, function(data) {
             if (data.action === 'follow') {
-                btn.html('<i class="fas fa-user-minus"></i> 取消关注');
+                btn.html('<i class="bi bi-person-dash"></i> 取消关注');
             } else if (data.action === 'unfollow') {
-                btn.html('<i class="fas fa-user-plus"></i> 关注');
+                btn.html('<i class="bi bi-person-plus"></i> 关注');
             }
         }).fail(function(xhr) {
             alert('操作失败：' + xhr.responseJSON.error);

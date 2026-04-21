@@ -2,7 +2,7 @@
 """普通成员视角：我的信息、我的报名、可报名活动"""
 from django.shortcuts import render, redirect, get_object_or_404
 from django import forms
-from app01.models import Member, Activity, ActivityRegistration, ActivityComment, ActivityPhoto, ActivityLike, Follow
+from app01.models import Member, Activity, ActivityRegistration, ActivityComment, ActivityPhoto, ActivityLike, Follow, ClubDiscussion, RecruitmentApplication
 from app01.utils.md5 import get_md5
 from app01.srcs.utils.role_helper import get_request_role
 
@@ -12,7 +12,7 @@ def _member_required(req):
     role_type, club_id, member_id = get_request_role(req)
     if role_type not in ("member", "president") or not member_id:
         return None
-    return Member.objects.filter(member_id=member_id).first()
+    return Member.objects.filter(member_id=member_id).select_related('role', 'club').first()
 
 
 def member_profile(req):
@@ -71,6 +71,7 @@ def member_profile(req):
         if req.session.get("info"):
             req.session["info"]["name"] = inst.name
             req.session["info"]["avatar"] = inst.avatar.url if inst.avatar else None
+            req.session.modified = True
         return redirect("/member/profile/")
     for fname in ["member_id", "club", "role", "join_time", "status"]:
         if fname in form.fields:
@@ -120,7 +121,7 @@ def my_registrations(req):
 
 
 def activities_can_register(req):
-    """可报名活动：本社团内状态为「报名中」且本人未报名的活动"""
+    """可报名活动：本社团内状态为「报名中」且本人未报名的活动（成员和社长都可用）"""
     me = _member_required(req)
     if not me:
         return redirect("/login/")
@@ -136,7 +137,15 @@ def activities_can_register(req):
         club_id=me.club_id,
         status=1,
     ).exclude(activity_id__in=my_activity_ids).order_by("activity_id")
-    return render(req, "member_portal/activities_can_register.html", {"queryset": queryset, "member": me})
+    
+    # 获取角色类型用于模板显示
+    role_type, _, _ = get_request_role(req)
+    
+    return render(req, "member_portal/activities_can_register.html", {
+        "queryset": queryset, 
+        "member": me,
+        "role_type": role_type,
+    })
 
 
 def do_register(req, activity_id):
@@ -154,6 +163,112 @@ def do_register(req, activity_id):
     activity.current_participants = activity.registrations.filter(status__in=[1, 2]).count()
     activity.save()
     return redirect("/member/my-registrations/")
+
+
+def leave_club(req):
+    """成员退出社团"""
+    me = _member_required(req)
+    if not me:
+        return redirect("/login/")
+    
+    if req.method == "POST":
+        # 获取当前社团ID（用于更新招新申请）
+        old_club_id = me.club_id
+        
+        # 清除成员的社团关联
+        me.club = None
+        me.role = None
+        me.save()
+        
+        # 更新 session 信息
+        if req.session.get("info"):
+            req.session["info"]["club_id"] = None
+            # 将角色类型从 president 改为 member
+            # 因为退出后不再是社长
+            if req.session["info"].get("type") == "president":
+                req.session["info"]["type"] = "member"
+            req.session.modified = True
+        
+        # 将该成员在该社团的所有"已通过"招新申请状态改为"已拒绝"
+        # 这样成员可以重新报名该社团或其他社团
+        if old_club_id:
+            RecruitmentApplication.objects.filter(
+                student_id=me.member_id,
+                status=2,  # 已通过
+                recruitment__club_id=old_club_id
+            ).update(status=3)  # 改为已拒绝
+            
+            # 同时将该成员对其他社团的"待审核"申请也改为"已拒绝"
+            # 避免退出后无法报名其他社团
+            RecruitmentApplication.objects.filter(
+                student_id=me.member_id,
+                status=1,  # 待审核
+                recruitment__club_id__isnull=False
+            ).exclude(recruitment__club_id=old_club_id).update(status=3)  # 改为已拒绝
+        
+        return redirect("/member/profile/")
+    
+    return redirect("/member/profile/")
+
+
+def club_discussion(req):
+    """社团内部讨论页面"""
+    me = _member_required(req)
+    if not me:
+        return redirect("/login/")
+    
+    # 获取当前成员关注的人（无论是否有社团都需要）
+    following_ids = set(Follow.objects.filter(follower=me).values_list('followed_id', flat=True))
+    
+    if not me.club:
+        return render(req, "member_portal/discussion.html", {
+            "error": "您尚未加入任何社团",
+            "member": me,
+            "following_ids": following_ids,
+            "discussions": [],
+        })
+    
+    if req.method == "POST":
+        content = req.POST.get("content", "").strip()
+        if content:
+            ClubDiscussion.objects.create(
+                club=me.club,
+                member=me,
+                content=content
+            )
+        return redirect("/member/discussion/")
+    
+    # 获取社团所有讨论
+    discussions = ClubDiscussion.objects.filter(
+        club=me.club,
+        is_deleted=False
+    ).select_related('member', 'member__role').order_by("-create_time")
+    
+    # 获取当前成员关注的人
+    following_ids = set(Follow.objects.filter(follower=me).values_list('followed_id', flat=True))
+    
+    context = {
+        "discussions": discussions,
+        "member": me,
+        "following_ids": following_ids,
+    }
+    return render(req, "member_portal/discussion.html", context)
+
+
+def delete_discussion(req, discussion_id):
+    """删除自己的讨论"""
+    me = _member_required(req)
+    if not me:
+        return redirect("/login/")
+    
+    discussion = get_object_or_404(ClubDiscussion, discussion_id=discussion_id)
+    
+    # 只能删除自己的发言，社长可以删除任何人的
+    if discussion.member == me or (me.role and me.role.level == 1):
+        discussion.is_deleted = True
+        discussion.save()
+    
+    return redirect("/member/discussion/")
 
 
 def activity_detail(req, activity_id):

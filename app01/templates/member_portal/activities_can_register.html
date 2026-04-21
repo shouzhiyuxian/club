@@ -1,46 +1,132 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="container mt-4">
-    <ul class="list-group">
-        <li class="list-group-item list-group-item-dark">
-            <i class="bi bi-calendar-plus"></i>
-            <strong>可报名活动</strong>
-            <span class="text-muted small">（本社团 · 报名中 · 未报名）</span>
-        </li>
-        <li class="list-group-item">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>活动名称</th>
-                        <th>地点</th>
-                        <th>开始时间</th>
-                        <th>人数</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for obj in queryset %}
-                    <tr>
-                        <td>{{ obj.title }}</td>
-                        <td>{{ obj.location|default:"-" }}</td>
-                        <td>{{ obj.start_time|default:"-" }}</td>
-                        <td>{{ obj.current_participants }}/{{ obj.max_participants|default:"不限" }}</td>
-                        <td>
-                            <a class="btn btn-success btn-sm" href="/member/activities/{{ obj.activity_id }}/register/">报名</a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="5" class="text-muted">暂无可报名活动</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </li>
-    </ul>
-    <p class="mt-3">
-        <a href="/member/my-registrations/" class="btn btn-outline-primary">我的报名</a>
-        <a href="/member/profile/" class="btn btn-outline-secondary">我的信息</a>
-        <a href="/" class="btn btn-secondary">首页</a>
-    </p>
+<div class="container py-4">
+    <!-- 页面标题 -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="bi bi-calendar-plus-fill text-primary"></i>
+                可报名活动
+            </h2>
+            <p class="text-muted mb-0">浏览本社团正在报名中的活动，选择感兴趣的活动参加</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-primary" href="/member/my-registrations/">
+                <i class="bi bi-clipboard-check"></i>
+                我的报名
+            </a>
+            <a class="btn btn-outline-secondary" href="/member/profile/">
+                <i class="bi bi-person"></i>
+                我的信息
+            </a>
+        </div>
+    </div>
+
+    <!-- 筛选提示 -->
+    <div class="alert alert-info d-flex align-items-center mb-4" role="alert">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        <div>当前仅展示您所在社团、状态为「报名中」且您未报名的活动</div>
+    </div>
+
+    <!-- 活动卡片网格 -->
+    <div class="row g-4">
+        {% for obj in queryset %}
+        <div class="col-xl-4 col-lg-6 col-md-6">
+            <div class="card h-100 shadow-sm border-0 can-register-card">
+                <div class="card-header bg-white border-0 pt-4 pb-0">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="activity-icon bg-gradient-primary rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-calendar-event text-white fs-3"></i>
+                        </div>
+                        <span class="badge bg-warning">报名中</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title mb-2">{{ obj.title }}</h5>
+                    
+                    <div class="activity-info">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-geo-alt text-primary me-2"></i>
+                            <span>{{ obj.location|default:"未设置" }}</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-clock text-primary me-2"></i>
+                            <span>{{ obj.start_time|default:"未设置" }}</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-people text-primary me-2"></i>
+                            <span>{{ obj.current_participants }}/{{ obj.max_participants|default:"不限" }} 人</span>
+                        </div>
+                    </div>
+
+                    <!-- 参与人数进度条 -->
+                    {% if obj.max_participants %}
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>已报名人数</span>
+                            <span>{{ obj.current_participants }}/{{ obj.max_participants }}</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            {% widthratio obj.current_participants obj.max_participants 100 as participation_percent %}
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ participation_percent }}%"></div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-white border-top-0 pt-0">
+                    <a class="btn btn-primary btn-sm w-100" href="/member/activities/{{ obj.activity_id }}/register/">
+                        <i class="bi bi-person-plus-fill"></i> 立即报名
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-calendar-x text-muted" style="font-size: 4rem;"></i>
+                    <h5 class="mt-3 text-muted">暂无可报名活动</h5>
+                    <p class="text-muted">当前没有您所在社团正在报名中的活动</p>
+                    <a href="/member/my-registrations/" class="btn btn-outline-primary mt-2">
+                        <i class="bi bi-clipboard-check"></i> 查看我的报名
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 </div>
+
+<style>
+.can-register-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.can-register-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+.activity-icon {
+    width: 60px;
+    height: 60px;
+}
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+.activity-info {
+    font-size: 0.9rem;
+}
+.activity-info i {
+    width: 20px;
+    text-align: center;
+}
+.progress {
+    background-color: #e9ecef;
+    border-radius: 3px;
+}
+.progress-bar {
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+</style>
 {% endblock %}

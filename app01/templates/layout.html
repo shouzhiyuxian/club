@@ -30,28 +30,48 @@
           <a class="nav-link" href="/">仪表盘</a>
         </li>
         {% if request.session.info.type == "admin" %}
+        <!-- 管理员：社团管理 -->
         <li class="nav-item"><a class="nav-link" href="/club/list">社团管理</a></li>
+        <!-- 管理员：成员管理 -->
         <li class="nav-item"><a class="nav-link" href="/member/list">成员管理</a></li>
+        <!-- 管理员：活动管理 -->
         <li class="nav-item"><a class="nav-link" href="/activity/list">活动管理</a></li>
         <li class="nav-item"><a class="nav-link" href="/registration/list">活动报名</a></li>
+        <!-- 管理员：招新管理 -->
         <li class="nav-item"><a class="nav-link" href="/recruitment/list">招新管理</a></li>
+        <!-- 管理员：公告 -->
         <li class="nav-item"><a class="nav-link" href="/announcement/list">公告管理</a></li>
         {% elif request.session.info.type == "president" %}
+        <!-- 社长：社团管理 -->
         <li class="nav-item"><a class="nav-link" href="/club/list">本社团</a></li>
         <li class="nav-item"><a class="nav-link" href="/club/transfer/">转让社长</a></li>
+        <!-- 社长：成员管理 -->
         <li class="nav-item"><a class="nav-link" href="/member/list">成员管理</a></li>
+        <!-- 社长：活动管理 -->
         <li class="nav-item"><a class="nav-link" href="/activity/list">活动管理</a></li>
         <li class="nav-item"><a class="nav-link" href="/registration/list">活动报名</a></li>
+        <li class="nav-item"><a class="nav-link" href="/member/activities/">可报名活动</a></li>
+        <li class="nav-item"><a class="nav-link" href="/member/my-registrations/">我的报名</a></li>
+        <!-- 社长：招新管理 -->
         <li class="nav-item"><a class="nav-link" href="/recruitment/list">招新管理</a></li>
+        <!-- 社长：公告 -->
         <li class="nav-item"><a class="nav-link" href="/announcement/list">公告管理</a></li>
         {% else %}
+        <!-- 成员：成员相关 -->
         <li class="nav-item"><a class="nav-link" href="/member/list">成员列表</a></li>
-        <li class="nav-item"><a class="nav-link" href="/member/profile/">我的信息</a></li>
-        <li class="nav-item"><a class="nav-link" href="/member/my-registrations/">我的报名</a></li>
+        <!-- 成员：活动相关 -->
         <li class="nav-item"><a class="nav-link" href="/member/activities/">可报名活动</a></li>
+        <li class="nav-item"><a class="nav-link" href="/member/my-registrations/">我的报名</a></li>
+        <!-- 成员：招新 -->
+        <li class="nav-item"><a class="nav-link" href="/recruitment/list">社团招新</a></li>
+        <!-- 成员：公告 -->
         <li class="nav-item"><a class="nav-link" href="/announcement/list">公告</a></li>
         {% endif %}
         {% endif %}
+      </ul>
+      
+      <!-- 用户头像菜单 - 最右边 -->
+      <ul class="navbar-nav ms-auto">
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             {% if request.session.info %}
@@ -76,7 +96,7 @@
               请登录
             {% endif %}
           </a>
-          <ul class="dropdown-menu">
+          <ul class="dropdown-menu dropdown-menu-end">
                 {% if not request.session.info.name %}
             <li><a class="dropdown-item" href="/login/">登录</a></li>
                 {% else %}
@@ -94,11 +114,7 @@
           </ul>
         </li>
       </ul>
-        <ul class="navbar-nav navbar-right">
-            <li class="nav-item">
-                <a class="nav-link disabled">敬请期待</a>
-            </li>
-        </ul>
+      
 {#      <form class="d-flex" role="search">#}
 {#          <input class="form-control me-2" type="search" placeholder="搜索" aria-label="Search">#}
 {#          <button class="btn btn-outline-success " type="submit" style="width: 100px;"><strong>搜索</strong></button>#}
@@ -110,6 +126,15 @@
 <div>
         {% block content %}{% endblock %}
 </div>
+
+{% if request.session.info and request.session.info.type != "admin" %}
+<!-- 社团讨论悬浮按钮 -->
+<a href="/member/discussion/" class="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center" 
+   style="position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; z-index: 1000;"
+   title="社团讨论">
+    <i class="bi bi-chat-dots-fill" style="font-size: 28px;"></i>
+</a>
+{% endif %}
 
 <script src="{% static "jquery-3.6.4.min.js" %}"></script>
 <script src="{% static "bootstrap-5.3.0-alpha1-dist/js/bootstrap.bundle.js" %}"></script>

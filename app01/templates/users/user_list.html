@@ -50,7 +50,7 @@
                             <td>{{ obj.department.title}}</td>
                           <td>
                               <a class="btn btn-primary btn-sm" href="/user/{{ obj.user_id }}/edit">编辑</a>
-                              <a class="btn btn-danger btn-sm" href="/user/delete/?nid={{ obj.user_id }}">删除</a>
+                              <a class="btn btn-danger btn-sm" href="/user/delete/?nid={{ obj.user_id }}" onclick="return confirm('确定删除用户 {{ obj.account }} 吗？')">删除</a>
                           </td>
                         </tr>
                       {% endfor %}

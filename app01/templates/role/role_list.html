@@ -34,7 +34,7 @@
                           <td>{{ obj.description|default:"无"}}</td>
                           <td>
                               <a class="btn btn-primary btn-sm" href="/role/{{ obj.role_id }}/edit">编辑</a>
-                              <a class="btn btn-danger btn-sm" href="/role/delete/?nid={{ obj.role_id }}">删除</a>
+                              <a class="btn btn-danger btn-sm" href="/role/delete/?nid={{ obj.role_id }}" onclick="return confirm('确定删除角色 {{ obj.name }} 吗？')">删除</a>
                           </td>
                         </tr>
                       {% endfor %}

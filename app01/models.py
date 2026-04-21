@@ -5,7 +5,8 @@ import datetime
 
 class MyAdmin(models.Model):
     """管理员表"""
-    id = models.CharField(verbose_name="管理员账号", primary_key=True, max_length=32)
+    id = models.CharField(verbose_name="ID", primary_key=True, max_length=32)
+    account = models.CharField(verbose_name="登录账号", max_length=32, unique=True, null=True, blank=True)
     user_name = models.CharField(verbose_name="管理员名", max_length=32)
     password = models.CharField(verbose_name="管理员密码", max_length=64)
 
@@ -337,4 +338,24 @@ class ActivityLike(models.Model):
 
     def __str__(self):
         return f"{self.member.name} 点赞 {self.activity.title}"
+
+
+class ClubDiscussion(models.Model):
+    """社团内部讨论表"""
+    discussion_id = models.BigAutoField(primary_key=True, verbose_name="讨论ID")
+    club = models.ForeignKey(to="Club", to_field="club_id", related_name="discussions",
+                            verbose_name="所属社团", null=False, blank=False, on_delete=models.CASCADE)
+    member = models.ForeignKey(to="Member", to_field="member_id", related_name="discussions",
+                              verbose_name="发言者", null=False, blank=False, on_delete=models.CASCADE)
+    content = models.TextField(verbose_name="讨论内容", null=False, blank=False)
+    create_time = models.DateTimeField(verbose_name="发言时间", null=True, blank=True, default=datetime.datetime.now)
+    is_deleted = models.BooleanField(verbose_name="是否删除", default=False)
+
+    class Meta:
+        verbose_name = "社团讨论"
+        db_table = "club_discussion"
+        ordering = ["-create_time"]
+
+    def __str__(self):
+        return f"{self.member.name} 在 {self.club.name} 的发言"
 

@@ -40,7 +40,20 @@ def _member_queryset(req):
             # 如果没有社团ID，返回空查询集
             return Member.objects.none()
     
-    return Member.objects.filter(**search_data_dict).order_by("member_id")
+    # 排除已解散社团的成员（club为NULL且status为退社）
+    queryset = Member.objects.filter(**search_data_dict).exclude(
+        club__isnull=True, status=3
+    )
+    
+    # 自动修复1：在社团中但角色为NULL的成员，设置为普通成员
+    role_member = Role.objects.filter(level=2).first()
+    if role_member:
+        queryset.filter(club__isnull=False, role__isnull=True).update(role=role_member)
+    
+    # 自动修复2：未加入社团但角色不为NULL的成员，清除角色
+    queryset.filter(club__isnull=True, role__isnull=False).update(role=None)
+    
+    return queryset.order_by("member_id")
 
 
 def member_list(req):

@@ -1,216 +1,193 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="container">
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div class="card">
-                <div class="card-header">
-                    <h4><i class="bi bi-person-circle"></i> 我的信息</h4>
+<div class="container py-4">
+    <div class="row g-4">
+        <!-- 左侧个人信息卡片 -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 profile-card">
+                <div class="card-body text-center p-4">
+                    <!-- 头像 -->
+                    <div class="profile-avatar-wrapper mx-auto mb-3">
+                        {% if member.avatar %}
+                            <img src="{{ member.avatar.url }}" alt="头像" class="profile-avatar rounded-circle">
+                        {% else %}
+                            <div class="profile-avatar bg-gradient-primary rounded-circle d-flex align-items-center justify-content-center">
+                                <i class="bi bi-person-fill text-white" style="font-size: 3rem;"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <h4 class="card-title mb-1">{{ member.name }}</h4>
+                    <p class="text-muted mb-2">{{ member.member_id }}</p>
+                    
+                    {% if member.club %}
+                        <div class="mb-3">
+                            <span class="badge bg-primary">
+                                <i class="bi bi-building me-1"></i>{{ member.club.name }}
+                            </span>
+                            {% if member.role %}
+                                <span class="badge {% if member.role.level == 1 %}bg-danger{% else %}bg-info{% endif %} ms-1">
+                                    {{ member.role.name }}
+                                </span>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    <div class="d-flex gap-2 justify-content-center">
+                        <a href="/member/change-password/" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-key"></i> 修改密码
+                        </a>
+                        {% if member.club %}
+                        <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#leaveClubModal">
+                            <i class="bi bi-box-arrow-right"></i> 退出社团
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- 编辑个人信息表单 -->
+            <div class="card shadow-sm border-0 mt-4 profile-card">
+                <div class="card-header bg-white border-0 pt-4 pb-0">
+                    <h5 class="mb-0">
+                        <i class="bi bi-pencil-square text-primary me-2"></i>编辑资料
+                    </h5>
                 </div>
                 <div class="card-body">
                     <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="{{ form.member_id.id_for_label }}" class="form-label">{{ form.member_id.label }}</label>
-                                    {{ form.member_id }}
-                                    <div class="invalid-feedback">{{ form.member_id.errors.0 }}</div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
-                                    {{ form.name }}
-                                    <div class="invalid-feedback">{{ form.name.errors.0 }}</div>
-                                </div>
-                            </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">学号</label>
+                            <div class="form-control bg-light">{{ member.member_id }}</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">姓名</label>
+                            {{ form.name }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.avatar.id_for_label }}" class="form-label">头像</label>
+                            {{ form.avatar }}
                         </div>
                         
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-6">
                                 <div class="mb-3">
-                                    <label for="{{ form.nickname.id_for_label }}" class="form-label">{{ form.nickname.label }}</label>
-                                    {{ form.nickname }}
-                                    <div class="invalid-feedback">{{ form.nickname.errors.0 }}</div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="{{ form.avatar.id_for_label }}" class="form-label">{{ form.avatar.label }}</label>
-                                    {{ form.avatar }}
-                                    <div class="invalid-feedback">{{ form.avatar.errors.0 }}</div>
-                                    {% if member.avatar %}
-                                        <div class="mt-2">
-                                            <img src="{{ member.avatar.url }}" alt="当前头像" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;">
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="{{ form.gender.id_for_label }}" class="form-label">{{ form.gender.label }}</label>
+                                    <label for="{{ form.gender.id_for_label }}" class="form-label">性别</label>
                                     {{ form.gender }}
-                                    <div class="invalid-feedback">{{ form.gender.errors.0 }}</div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-6">
                                 <div class="mb-3">
-                                    <label for="{{ form.grade.id_for_label }}" class="form-label">{{ form.grade.label }}</label>
+                                    <label for="{{ form.grade.id_for_label }}" class="form-label">年级</label>
                                     {{ form.grade }}
-                                    <div class="invalid-feedback">{{ form.grade.errors.0 }}</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="{{ form.major.id_for_label }}" class="form-label">{{ form.major.label }}</label>
-                                    {{ form.major }}
-                                    <div class="invalid-feedback">{{ form.major.errors.0 }}</div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="{{ form.phone.id_for_label }}" class="form-label">{{ form.phone.label }}</label>
-                                    {{ form.phone }}
-                                    <div class="invalid-feedback">{{ form.phone.errors.0 }}</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
-                                    {{ form.email }}
-                                    <div class="invalid-feedback">{{ form.email.errors.0 }}</div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="{{ form.club.id_for_label }}" class="form-label">{{ form.club.label }}</label>
-                                    {{ form.club }}
-                                    <div class="invalid-feedback">{{ form.club.errors.0 }}</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="{{ form.role.id_for_label }}" class="form-label">{{ form.role.label }}</label>
-                                    {{ form.role }}
-                                    <div class="invalid-feedback">{{ form.role.errors.0 }}</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="{{ form.join_time.id_for_label }}" class="form-label">{{ form.join_time.label }}</label>
-                                    {{ form.join_time }}
-                                    <div class="invalid-feedback">{{ form.join_time.errors.0 }}</div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="{{ form.status.id_for_label }}" class="form-label">{{ form.status.label }}</label>
-                                    {{ form.status }}
-                                    <div class="invalid-feedback">{{ form.status.errors.0 }}</div>
                                 </div>
                             </div>
                         </div>
                         
                         <div class="mb-3">
-                            <label for="{{ form.remark.id_for_label }}" class="form-label">{{ form.remark.label }}</label>
-                            {{ form.remark }}
-                            <div class="invalid-feedback">{{ form.remark.errors.0 }}</div>
+                            <label for="{{ form.major.id_for_label }}" class="form-label">专业</label>
+                            {{ form.major }}
                         </div>
                         
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check-circle"></i> 保存
-                            </button>
-                            <a href="/member/change-password/" class="btn btn-outline-secondary">
-                                <i class="bi bi-key"></i> 修改密码
-                            </a>
-                            <a href="/" class="btn btn-secondary">
-                                <i class="bi bi-house"></i> 返回首页
-                            </a>
+                        <div class="mb-3">
+                            <label for="{{ form.phone.id_for_label }}" class="form-label">手机号</label>
+                            {{ form.phone }}
                         </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">邮箱</label>
+                            {{ form.email }}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <label class="form-label">所属社团</label>
+                                    <div class="form-control bg-light">{{ member.club.name|default:"未加入" }}</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <label class="form-label">角色</label>
+                                    <div class="form-control bg-light">{{ member.role.name|default:"未设置" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.remark.id_for_label }}" class="form-label">个人简介</label>
+                            {{ form.remark }}
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-check-circle"></i> 保存修改
+                        </button>
                     </form>
                 </div>
             </div>
         </div>
-    </div>
-    
-    <!-- 活动参与历史 -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h4><i class="bi bi-calendar-event"></i> 我的活动参与历史</h4>
+        
+        <!-- 右侧活动历史 -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 profile-card">
+                <div class="card-header bg-white border-0 pt-4">
+                    <h5 class="mb-0">
+                        <i class="bi bi-activity text-success me-2"></i>我的动态
+                    </h5>
                 </div>
                 <div class="card-body">
-                    <ul class="nav nav-tabs" id="activityTabs" role="tablist">
+                    <!-- 标签页导航 -->
+                    <ul class="nav nav-pills mb-3" id="profileTabs" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="registrations-tab" data-bs-toggle="tab" data-bs-target="#registrations" type="button" role="tab" aria-controls="registrations" aria-selected="true">
-                                <i class="bi bi-check-circle"></i> 报名记录 ({{ registrations|length }})
+                            <button class="nav-link active" id="registrations-tab" data-bs-toggle="tab" data-bs-target="#registrations" type="button" role="tab">
+                                <i class="bi bi-check-circle me-1"></i>报名记录
+                                <span class="badge bg-secondary ms-1">{{ registrations|length }}</span>
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="comments-tab" data-bs-toggle="tab" data-bs-target="#comments" type="button" role="tab" aria-controls="comments" aria-selected="false">
-                                <i class="bi bi-chat-dots"></i> 我的评论 ({{ comments|length }})
+                            <button class="nav-link" id="comments-tab" data-bs-toggle="tab" data-bs-target="#comments" type="button" role="tab">
+                                <i class="bi bi-chat-dots me-1"></i>我的评论
+                                <span class="badge bg-secondary ms-1">{{ comments|length }}</span>
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="photos-tab" data-bs-toggle="tab" data-bs-target="#photos" type="button" role="tab" aria-controls="photos" aria-selected="false">
-                                <i class="bi bi-images"></i> 上传照片 ({{ photos|length }})
+                            <button class="nav-link" id="photos-tab" data-bs-toggle="tab" data-bs-target="#photos" type="button" role="tab">
+                                <i class="bi bi-images me-1"></i>上传照片
+                                <span class="badge bg-secondary ms-1">{{ photos|length }}</span>
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="likes-tab" data-bs-toggle="tab" data-bs-target="#likes" type="button" role="tab" aria-controls="likes" aria-selected="false">
-                                <i class="bi bi-heart"></i> 点赞记录 ({{ likes|length }})
+                            <button class="nav-link" id="likes-tab" data-bs-toggle="tab" data-bs-target="#likes" type="button" role="tab">
+                                <i class="bi bi-heart me-1"></i>点赞记录
+                                <span class="badge bg-secondary ms-1">{{ likes|length }}</span>
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="following-tab" data-bs-toggle="tab" data-bs-target="#following" type="button" role="tab" aria-controls="following" aria-selected="false">
-                                <i class="bi bi-person-plus"></i> 我的关注 ({{ following|length }})
+                            <button class="nav-link" id="following-tab" data-bs-toggle="tab" data-bs-target="#following" type="button" role="tab">
+                                <i class="bi bi-person-plus me-1"></i>我的关注
+                                <span class="badge bg-secondary ms-1">{{ following|length }}</span>
                             </button>
                         </li>
                     </ul>
                     
-                    <div class="tab-content mt-3" id="activityTabsContent">
+                    <div class="tab-content" id="profileTabsContent">
                         <!-- 报名记录 -->
-                        <div class="tab-pane fade show active" id="registrations" role="tabpanel" aria-labelledby="registrations-tab">
+                        <div class="tab-pane fade show active" id="registrations" role="tabpanel">
                             {% if registrations %}
-                                <div class="table-responsive">
-                                    <table class="table table-striped">
-                                        <thead>
-                                            <tr>
-                                                <th>活动名称</th>
-                                                <th>报名时间</th>
-                                                <th>状态</th>
-                                                <th>活动时间</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for reg in registrations %}
-                                                <tr>
-                                                    <td>
-                                                        <a href="/member/activity/{{ reg.activity.activity_id }}/" class="text-decoration-none">
-                                                            {{ reg.activity.title }}
-                                                        </a>
-                                                    </td>
-                                                    <td>{{ reg.register_time|date:"Y-m-d H:i" }}</td>
-                                                    <td>
+                                <div class="row g-3">
+                                    {% for reg in registrations %}
+                                        <div class="col-md-6">
+                                            <div class="card h-100 border activity-card">
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                                        <h6 class="card-title mb-0">
+                                                            <a href="/member/activity/{{ reg.activity.activity_id }}/" class="text-decoration-none">
+                                                                {{ reg.activity.title }}
+                                                            </a>
+                                                        </h6>
                                                         {% if reg.status == 1 %}
                                                             <span class="badge bg-primary">已报名</span>
                                                         {% elif reg.status == 2 %}
@@ -220,34 +197,36 @@
                                                         {% else %}
                                                             <span class="badge bg-warning">未参加</span>
                                                         {% endif %}
-                                                    </td>
-                                                    <td>
-                                                        {% if reg.activity.start_time %}
-                                                            {{ reg.activity.start_time|date:"Y-m-d H:i" }}
-                                                        {% else %}
-                                                            未设置
-                                                        {% endif %}
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                                        <small class="text-muted">
+                                                            <i class="bi bi-building me-1"></i>{{ reg.activity.club.name|default:"未设置" }}
+                                                        </small>
+                                                        <small class="text-muted">{{ reg.register_time|date:"Y-m-d" }}</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
                                 </div>
                             {% else %}
-                                <div class="text-center text-muted py-4">
+                                <div class="text-center text-muted py-5">
                                     <i class="bi bi-calendar-x" style="font-size: 3rem;"></i>
-                                    <p class="mt-2">暂无活动报名记录</p>
+                                    <p class="mt-3">暂无活动报名记录</p>
+                                    <a href="/member/activities/" class="btn btn-success btn-sm">
+                                        <i class="bi bi-calendar-plus"></i> 去报名活动
+                                    </a>
                                 </div>
                             {% endif %}
                         </div>
                         
                         <!-- 评论记录 -->
-                        <div class="tab-pane fade" id="comments" role="tabpanel" aria-labelledby="comments-tab">
+                        <div class="tab-pane fade" id="comments" role="tabpanel">
                             {% if comments %}
-                                <div class="row">
+                                <div class="row g-3">
                                     {% for comment in comments %}
-                                        <div class="col-md-6 mb-3">
-                                            <div class="card h-100">
+                                        <div class="col-md-6">
+                                            <div class="card h-100 border activity-card">
                                                 <div class="card-body">
                                                     <h6 class="card-title">
                                                         <a href="/member/activity/{{ comment.activity.activity_id }}/" class="text-decoration-none">
@@ -262,30 +241,27 @@
                                     {% endfor %}
                                 </div>
                             {% else %}
-                                <div class="text-center text-muted py-4">
+                                <div class="text-center text-muted py-5">
                                     <i class="bi bi-chat-square" style="font-size: 3rem;"></i>
-                                    <p class="mt-2">暂无评论记录</p>
+                                    <p class="mt-3">暂无评论记录</p>
                                 </div>
                             {% endif %}
                         </div>
                         
                         <!-- 照片记录 -->
-                        <div class="tab-pane fade" id="photos" role="tabpanel" aria-labelledby="photos-tab">
+                        <div class="tab-pane fade" id="photos" role="tabpanel">
                             {% if photos %}
-                                <div class="row">
+                                <div class="row g-3">
                                     {% for photo in photos %}
-                                        <div class="col-md-4 mb-3">
-                                            <div class="card h-100">
-                                                <img src="{{ photo.photo.url }}" class="card-img-top" alt="活动照片" style="height: 200px; object-fit: cover;">
+                                        <div class="col-md-4">
+                                            <div class="card h-100 border photo-card">
+                                                <img src="{{ photo.photo.url }}" class="card-img-top" alt="活动照片" style="height: 150px; object-fit: cover;">
                                                 <div class="card-body">
-                                                    <h6 class="card-title">
+                                                    <h6 class="card-title small">
                                                         <a href="/member/activity/{{ photo.activity.activity_id }}/" class="text-decoration-none">
                                                             {{ photo.activity.title }}
                                                         </a>
                                                     </h6>
-                                                    {% if photo.description %}
-                                                        <p class="card-text">{{ photo.description }}</p>
-                                                    {% endif %}
                                                     <small class="text-muted">{{ photo.upload_time|date:"Y-m-d H:i" }}</small>
                                                 </div>
                                             </div>
@@ -293,28 +269,28 @@
                                     {% endfor %}
                                 </div>
                             {% else %}
-                                <div class="text-center text-muted py-4">
+                                <div class="text-center text-muted py-5">
                                     <i class="bi bi-image" style="font-size: 3rem;"></i>
-                                    <p class="mt-2">暂无上传照片</p>
+                                    <p class="mt-3">暂无上传照片</p>
                                 </div>
                             {% endif %}
                         </div>
                         
                         <!-- 点赞记录 -->
-                        <div class="tab-pane fade" id="likes" role="tabpanel" aria-labelledby="likes-tab">
+                        <div class="tab-pane fade" id="likes" role="tabpanel">
                             {% if likes %}
-                                <div class="row">
+                                <div class="row g-3">
                                     {% for like in likes %}
-                                        <div class="col-md-6 mb-3">
-                                            <div class="card h-100">
+                                        <div class="col-md-6">
+                                            <div class="card h-100 border activity-card">
                                                 <div class="card-body">
                                                     <h6 class="card-title">
                                                         <a href="/member/activity/{{ like.activity.activity_id }}/" class="text-decoration-none">
                                                             {{ like.activity.title }}
                                                         </a>
                                                     </h6>
-                                                    <p class="card-text">
-                                                        <i class="bi bi-heart-fill text-danger"></i> 
+                                                    <p class="card-text text-danger">
+                                                        <i class="bi bi-heart-fill"></i> 
                                                         你点赞了这个活动
                                                     </p>
                                                     <small class="text-muted">{{ like.like_time|date:"Y-m-d H:i" }}</small>
@@ -324,56 +300,52 @@
                                     {% endfor %}
                                 </div>
                             {% else %}
-                                <div class="text-center text-muted py-4">
+                                <div class="text-center text-muted py-5">
                                     <i class="bi bi-heart" style="font-size: 3rem;"></i>
-                                    <p class="mt-2">暂无点赞记录</p>
+                                    <p class="mt-3">暂无点赞记录</p>
                                 </div>
                             {% endif %}
                         </div>
                         
                         <!-- 我的关注 -->
-                        <div class="tab-pane fade" id="following" role="tabpanel" aria-labelledby="following-tab">
+                        <div class="tab-pane fade" id="following" role="tabpanel">
                             {% if following %}
-                                <div class="row">
+                                <div class="row g-3">
                                     {% for follow in following %}
-                                        <div class="col-md-6 mb-3">
-                                            <div class="card h-100">
-                                                <div class="card-body text-center">
+                                        <div class="col-md-6">
+                                            <div class="card h-100 border follower-card">
+                                                <div class="card-body d-flex align-items-center gap-3">
                                                     {% if follow.followed.avatar %}
                                                         <img src="{{ follow.followed.avatar.url }}" alt="{{ follow.followed.name }}" 
-                                                             class="rounded-circle mb-2" style="width: 60px; height: 60px; object-fit: cover;">
+                                                             class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
                                                     {% else %}
-                                                        <div class="bg-secondary rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" 
-                                                             style="width: 60px; height: 60px;">
+                                                        <div class="bg-gradient-primary rounded-circle d-flex align-items-center justify-content-center" 
+                                                             style="width: 50px; height: 50px;">
                                                             <i class="bi bi-person text-white"></i>
                                                         </div>
                                                     {% endif %}
-                                                    <h6 class="card-title">
-                                                        <a href="/profile/{{ follow.followed.member_id }}/" class="text-decoration-none">
-                                                            {{ follow.followed.name }}
-                                                        </a>
-                                                    </h6>
-                                                    {% if follow.followed.nickname %}
-                                                        <p class="card-text small text-muted">{{ follow.followed.nickname }}</p>
-                                                    {% endif %}
-                                                    <p class="card-text small text-muted">
-                                                        {{ follow.followed.club.name }} · {{ follow.followed.get_role_display }}
-                                                    </p>
-                                                    <small class="text-muted">{{ follow.follow_time|date:"Y-m-d H:i" }} 关注</small>
-                                                    <div class="mt-2">
-                                                        <button class="btn btn-outline-danger btn-sm" onclick="unfollowUser('{{ follow.followed.member_id }}', this)">
-                                                            <i class="bi bi-person-dash"></i> 取消关注
-                                                        </button>
+                                                    <div class="flex-fill">
+                                                        <h6 class="card-title mb-0">
+                                                            <a href="/profile/{{ follow.followed.member_id }}/" class="text-decoration-none">
+                                                                {{ follow.followed.name }}
+                                                            </a>
+                                                        </h6>
+                                                        <p class="card-text small text-muted mb-0">
+                                                            {{ follow.followed.club.name|default:"未加入社团" }}
+                                                        </p>
                                                     </div>
+                                                    <button class="btn btn-outline-danger btn-sm" onclick="unfollowUser('{{ follow.followed.member_id }}', this)">
+                                                        <i class="bi bi-person-dash"></i>
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
                                     {% endfor %}
                                 </div>
                             {% else %}
-                                <div class="text-center text-muted py-4">
+                                <div class="text-center text-muted py-5">
                                     <i class="bi bi-person-plus" style="font-size: 3rem;"></i>
-                                    <p class="mt-2">暂无关注用户</p>
+                                    <p class="mt-3">暂无关注用户</p>
                                     <p class="small">去 <a href="/member/list/">成员列表</a> 发现更多有趣的人吧！</p>
                                 </div>
                             {% endif %}
@@ -384,6 +356,46 @@
         </div>
     </div>
 </div>
+
+<style>
+.profile-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.profile-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+}
+.profile-avatar-wrapper {
+    width: 120px;
+    height: 120px;
+}
+.profile-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+.activity-card, .photo-card, .follower-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.activity-card:hover, .photo-card:hover, .follower-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1) !important;
+}
+.nav-pills .nav-link {
+    border-radius: 20px;
+    margin-right: 8px;
+    color: #6c757d;
+}
+.nav-pills .nav-link.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+.nav-pills .nav-link:hover:not(.active) {
+    background-color: #f8f9fa;
+}
+</style>
 
 <script>
 function unfollowUser(memberId, buttonElement) {
@@ -401,22 +413,19 @@ function unfollowUser(memberId, buttonElement) {
     .then(response => response.json())
     .then(data => {
         if (data.action === 'unfollow') {
-            // 移除这个用户卡片
             const card = buttonElement.closest('.col-md-6');
             card.remove();
             
-            // 更新标签页的计数
             const followingTab = document.querySelector('#following-tab');
             const currentCount = parseInt(followingTab.textContent.match(/\d+/)[0]);
             followingTab.innerHTML = followingTab.innerHTML.replace(/\(\d+\)/, `(${currentCount - 1})`);
             
-            // 如果没有关注用户了，显示空状态
             const followingContainer = document.querySelector('#following .row');
-            if (followingContainer.children.length === 0) {
+            if (followingContainer && followingContainer.children.length === 0) {
                 const emptyState = `
-                    <div class="text-center text-muted py-4">
+                    <div class="text-center text-muted py-5">
                         <i class="bi bi-person-plus" style="font-size: 3rem;"></i>
-                        <p class="mt-2">暂无关注用户</p>
+                        <p class="mt-3">暂无关注用户</p>
                         <p class="small">去 <a href="/member/list/">成员列表</a> 发现更多有趣的人吧！</p>
                     </div>
                 `;
@@ -431,5 +440,33 @@ function unfollowUser(memberId, buttonElement) {
 }
 </script>
 
-{% endblock %}
+{% if member.club %}
+<!-- 退出社团确认模态框 -->
+<div class="modal fade" id="leaveClubModal" tabindex="-1" aria-labelledby="leaveClubModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="leaveClubModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill text-warning"></i> 确认退出社团
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>您确定要退出社团 <strong>{{ member.club.name }}</strong> 吗？</p>
+                <p class="text-muted small">退出后，您将不再是该社团成员，无法参加社团活动。此操作不可撤销。</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <form method="post" action="/member/leave-club/" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-box-arrow-right"></i> 确认退出
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 {% endblock %}
