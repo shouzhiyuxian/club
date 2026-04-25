@@ -78,18 +78,6 @@
     </div>
   </div>
   <div class="row g-4">
-    <div class="col-lg-4">
-      <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-0 py-3"><h6 class="mb-0">活动状态分布</h6></div>
-        <div class="card-body"><div class="position-relative" style="height: 260px; width: 260px;"><canvas id="chartActivityStatus"></canvas></div></div>
-      </div>
-    </div>
-    <div class="col-lg-6">
-      <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-0 py-3"><h6 class="mb-0">近6个月活动趋势</h6></div>
-        <div class="card-body"><div class="position-relative" style="height: 260px;"><canvas id="chartActivityTrend"></canvas></div></div>
-      </div>
-    </div>
     <div class="col-lg-6">
       <div class="card border-0 shadow-sm">
         <div class="card-header bg-white border-0 py-3"><h6 class="mb-0">成员年级分布</h6></div>
@@ -100,20 +88,10 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script>
   (function(){
-    const statusLabels = {{ activity_status_labels|safe }};
-    const statusCounts = {{ activity_status_counts|safe }};
-    const monthLabels = {{ month_labels|safe }};
-    const monthCounts = {{ month_counts|safe }};
     const gradeLabels = {{ grade_labels|safe }};
     const gradeCounts = {{ grade_counts|safe }};
     Chart.defaults.font.family = "'Segoe UI', 'Microsoft YaHei', sans-serif";
     Chart.defaults.color = '#6c757d';
-    if (document.getElementById('chartActivityStatus')) {
-      new Chart(document.getElementById('chartActivityStatus'), { type: 'doughnut', data: { labels: statusLabels, datasets: [{ data: statusCounts, backgroundColor: ['#0d6efd','#198754','#6c757d','#dc3545'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
-    }
-    if (document.getElementById('chartActivityTrend')) {
-      new Chart(document.getElementById('chartActivityTrend'), { type: 'line', data: { labels: monthLabels, datasets: [{ label: '活动数', data: monthCounts, fill: true, borderColor: 'rgb(23, 162, 184)', backgroundColor: 'rgba(23, 162, 184, 0.1)', tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } } });
-    }
     if (document.getElementById('chartGrade')) {
       new Chart(document.getElementById('chartGrade'), { type: 'bar', data: { labels: gradeLabels, datasets: [{ label: '人数', data: gradeCounts, backgroundColor: 'rgba(25, 135, 84, 0.7)', borderColor: 'rgb(25, 135, 84)', borderWidth: 1 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } } } });
     }
@@ -197,18 +175,6 @@
         <div class="card-body"><div class="position-relative" style="height: 280px;"><canvas id="chartClubMembers"></canvas></div></div>
       </div>
     </div>
-    <div class="col-lg-4">
-      <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-0 py-3"><h6 class="mb-0">活动状态分布</h6></div>
-        <div class="card-body"><div class="position-relative" style="height: 260px; width: 260px;"><canvas id="chartActivityStatus"></canvas></div></div>
-      </div>
-    </div>
-    <div class="col-lg-6">
-      <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-0 py-3"><h6 class="mb-0">近6个月活动趋势</h6></div>
-        <div class="card-body"><div class="position-relative" style="height: 260px;"><canvas id="chartActivityTrend"></canvas></div></div>
-      </div>
-    </div>
     <div class="col-lg-6">
       <div class="card border-0 shadow-sm">
         <div class="card-header bg-white border-0 py-3"><h6 class="mb-0">成员年级分布</h6></div>
@@ -221,22 +187,12 @@
   (function() {
     const clubLabels = {{ club_labels|default:"[]"|safe }};
     const clubCounts = {{ club_member_counts|default:"[]"|safe }};
-    const statusLabels = {{ activity_status_labels|default:"[]"|safe }};
-    const statusCounts = {{ activity_status_counts|default:"[]"|safe }};
-    const monthLabels = {{ month_labels|default:"[]"|safe }};
-    const monthCounts = {{ month_counts|default:"[]"|safe }};
     const gradeLabels = {{ grade_labels|default:"[]"|safe }};
     const gradeCounts = {{ grade_counts|default:"[]"|safe }};
     Chart.defaults.font.family = "'Segoe UI', 'Microsoft YaHei', sans-serif";
     Chart.defaults.color = '#6c757d';
     if (document.getElementById('chartClubMembers')) {
       new Chart(document.getElementById('chartClubMembers'), { type: 'bar', data: { labels: clubLabels, datasets: [{ label: '成员数', data: clubCounts, backgroundColor: 'rgba(13, 110, 253, 0.7)', borderColor: 'rgb(13, 110, 253)', borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { maxRotation: 45, minRotation: 30 } } } });
-    }
-    if (document.getElementById('chartActivityStatus')) {
-      new Chart(document.getElementById('chartActivityStatus'), { type: 'doughnut', data: { labels: statusLabels, datasets: [{ data: statusCounts, backgroundColor: ['#0d6efd','#198754','#6c757d','#dc3545'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
-    }
-    if (document.getElementById('chartActivityTrend')) {
-      new Chart(document.getElementById('chartActivityTrend'), { type: 'line', data: { labels: monthLabels, datasets: [{ label: '活动数', data: monthCounts, fill: true, borderColor: 'rgb(23, 162, 184)', backgroundColor: 'rgba(23, 162, 184, 0.1)', tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } } });
     }
     if (document.getElementById('chartGrade')) {
       new Chart(document.getElementById('chartGrade'), { type: 'bar', data: { labels: gradeLabels, datasets: [{ label: '人数', data: gradeCounts, backgroundColor: 'rgba(25, 135, 84, 0.7)', borderColor: 'rgb(25, 135, 84)', borderWidth: 1 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } } } });

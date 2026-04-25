@@ -84,8 +84,8 @@
                         <div class="d-flex align-items-center">
                             <i class="bi bi-calendar-check text-success me-2"></i>
                             <div class="flex-fill">
-                                <small class="text-muted d-block">报名时间</small>
-                                <span>{{ obj.register_time }}</span>
+                                <small class="text-muted d-block">活动开始时间</small>
+                                <span>{{ obj.activity.start_time|default:"未设置" }}</span>
                             </div>
                         </div>
                     </div>

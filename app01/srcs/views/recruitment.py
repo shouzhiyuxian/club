@@ -322,8 +322,7 @@ def application_approve(req, nid):
     member.club = club
     member.department = app.apply_department
     member.role = role
-    member.status = 1
-    member.save(update_fields=["club", "department", "role", "status"])
+    member.save(update_fields=["club", "department", "role"])
 
     app.status = 2
     app.save(update_fields=["status"])

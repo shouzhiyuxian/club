@@ -131,7 +131,6 @@ class Command(BaseCommand):
                     department=dept,
                     role=role,
                     join_time=join_time,
-                    status=1,
                 )
                 members.append(m)
 

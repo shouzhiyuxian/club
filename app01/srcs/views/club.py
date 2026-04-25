@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.db.models import Count
 from app01.models import Club, Member, Role
 from app01.utils.page_nav import PageNav
 from app01.srcs.forms.form import ClubModelForm
@@ -32,9 +33,8 @@ def _sync_club_president_role(club_obj, president_member_obj):
             return
         # 将成员移到本社团，并设为社长角色
         member.club_id = club_id
-        member.status = 1  # 确保状态为正常
         member.role = role_president
-        member.save(update_fields=["club_id", "status", "role_id"])
+        member.save(update_fields=["club_id", "role_id"])
         # 更新社团表的社长姓名
         if club_obj.president != member.name:
             club_obj.president = member.name
@@ -52,12 +52,13 @@ def club_list(req):
         search_data_dict["name__contains"] = search_data
     if role_type == "president" and club_id_role:
         search_data_dict["club_id"] = club_id_role
-    queryset = Club.objects.filter(**search_data_dict).order_by("club_id")
+    queryset = Club.objects.filter(**search_data_dict).annotate(
+        member_count=Count("members")
+    ).order_by("club_id")
     
     if req.GET.get("export") == "1":
-        status_map = {1: "正常", 2: "暂停", 3: "解散"}
-        headers = ["社团ID", "名称", "简介", "成立日期", "社长", "状态", "创建时间"]
-        rows = [[c.club_id, c.name, (c.description or "")[:50], c.established_date, c.president or "", status_map.get(c.status, ""), c.create_time] for c in queryset]
+        headers = ["社团ID", "名称", "简介", "成立日期", "社长", "创建时间", "成员人数"]
+        rows = [[c.club_id, c.name, (c.description or "")[:50], c.established_date, c.president or "", c.create_time, c.member_count] for c in queryset]
         return export_to_excel(rows, headers, filename="社团列表.xlsx", sheet_name="社团")
     
     page_nav_obj = PageNav(req, queryset)
@@ -94,9 +95,9 @@ def club_delete(req):
     nid = req.GET.get("nid")
     club_obj = Club.objects.filter(club_id=nid).first()
     if club_obj:
-        # 将该社团的所有成员状态改为退社，并清除角色
+        # 仅清除成员的社团和角色关联，保留成员记录和状态
         from app01.models import Member
-        Member.objects.filter(club_id=nid).update(status=3, role=None)
+        Member.objects.filter(club_id=nid).update(club=None, role=None)
         club_obj.delete()
     return redirect("/club/list")
 
@@ -130,10 +131,9 @@ def club_transfer(req):
     club = Club.objects.filter(club_id=club_id_role).first()
     if not current or not club or not current.role or current.role.level != 1:
         return redirect("/club/list")
-    # 本社团其他正常成员（排除自己）
+    # 本社团其他成员（排除自己）
     candidates = Member.objects.filter(
         club_id=club_id_role,
-        status=1,
     ).exclude(member_id=member_id).order_by("member_id")
     if req.method == "GET":
         return render(req, "club/club_transfer.html", {
@@ -171,16 +171,4 @@ def club_transfer(req):
     req.session.modified = True
     return redirect("/club/list")
 
-
-def president_view(req):
-    """社长查看（仅管理员）"""
-    role_type, _, _ = get_request_role(req)
-    if role_type != "admin":
-        return redirect("/club/list")
-    presidents = Member.objects.filter(
-        role__level=1,
-        status=1,
-        club__isnull=False
-    ).select_related("club", "role").order_by("club_id", "member_id")
-    return render(req, "club/president_view.html", {"queryset": presidents})
 

@@ -105,6 +105,7 @@ class MyadminFormReset(BootstrapModelForm):
 # 社团相关表单
 class ClubModelForm(BootstrapModelForm):
     established_date = forms.DateField(required=False,
+                                       label="成立日期",
                                        widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}))
     president = forms.ChoiceField(
         required=False,
@@ -115,10 +116,12 @@ class ClubModelForm(BootstrapModelForm):
     
     class Meta:
         model = Club
-        fields = ["name", "description", "established_date", "president", "status"]
+        fields = ["name", "description", "established_date", "president"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['name'].label = "社团名称"
+        self.fields['description'].label = "社团简介"
         # 编辑时优先限制为该社团成员；新增时只显示未加入社团的人
         # 判断是新增还是编辑：有 pk 说明是编辑
         is_edit = self.instance and self.instance.pk
@@ -140,7 +143,6 @@ class ClubModelForm(BootstrapModelForm):
             current = Member.objects.filter(
                 club_id=self.instance.club_id,
                 name=self.instance.president,
-                status=1,
             ).order_by("member_id").first()
             if current:
                 self.initial["president"] = current.member_id
@@ -161,18 +163,101 @@ class ClubModelForm(BootstrapModelForm):
 class RoleModelForm(BootstrapModelForm):
     class Meta:
         model = Role
-        fields = ["name", "level", "description"]
+        fields = ["name", "level"]
 
 
 # 成员相关表单
 class MemberModelForm(BootstrapModelForm):
-    join_time = forms.DateTimeField(required=False,
-                                    widget=forms.DateTimeInput(attrs={"class": "form-control", "type": "datetime-local"}))
+    """成员表单 - 添加时使用（包含member_id）"""
+    join_time = forms.DateField(required=False, label="加入日期",
+                                widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}))
     
     class Meta:
         model = Member
         fields = ["member_id", "name", "avatar", "gender", "grade", "major", "phone", "email",
-                 "club", "role", "join_time", "status", "remark"]
+                 "club", "role", "join_time"]
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # 添加模式：所有字段必填，除了 club、role、avatar
+        if not (self.instance and self.instance.pk):
+            for field_name in self.fields:
+                if field_name not in ('club', 'role', 'avatar'):
+                    self.fields[field_name].required = True
+                else:
+                    self.fields[field_name].required = False
+        # 如果是编辑模式（存在instance），禁用member_id字段
+        if self.instance and self.instance.pk:
+            self.fields['member_id'].disabled = True
+            self.fields['member_id'].help_text = "学号（主键）不可修改"
+            
+            # 将禁用字段的原始值注入 data，防止提交时被清空
+            if self.data and hasattr(self.instance, 'club_id'):
+                data = self.data.copy()
+                if 'club' not in self.data:
+                    data['club'] = self.instance.club_id or ''
+                if 'role' not in self.data:
+                    data['role'] = self.instance.role_id or ''
+                if 'join_time' not in self.data:
+                    data['join_time'] = str(self.instance.join_time) if self.instance.join_time else ''
+                self.data = data
+        # 存储旧的 role_id 和 club_id，用于检测变更
+        if self.instance and self.instance.pk:
+            self._old_role_id = self.instance.role_id
+            self._old_club_id = self.instance.club_id
+        else:
+            self._old_role_id = None
+            self._old_club_id = None
+    
+    def save(self, commit=True):
+        """重写 save 方法，同步 Club.president 字段和原社长降级"""
+        instance = super().save(commit=False)
+        
+        # 检测角色是否变为社长
+        is_now_president = False
+        if instance.role_id:
+            try:
+                role = Role.objects.get(role_id=instance.role_id)
+                if role.level == 1 and instance.club_id:
+                    is_now_president = True
+            except Role.DoesNotExist:
+                pass
+        
+        # 如果变为社长，同步 Club.president 并降级原社长
+        if is_now_president and instance.club_id:
+            # 更新社团表的社长姓名
+            Club.objects.filter(club_id=instance.club_id).update(president=instance.name)
+            
+            # 将原社长（如果有）降级为普通成员
+            role_member = Role.objects.filter(level=2).first()
+            if role_member:
+                Member.objects.filter(
+                    club_id=instance.club_id,
+                    role__level=1
+                ).exclude(member_id=instance.member_id).update(role=role_member)
+        
+        # 如果之前是社长但现在不是，清除 Club.president
+        if self._old_role_id and instance.role_id:
+            try:
+                old_role = Role.objects.get(role_id=self._old_role_id)
+                new_role = Role.objects.get(role_id=instance.role_id)
+                if old_role.level == 1 and new_role.level != 1:
+                    # 清除社团的社长信息（如果此成员是该社团的社长）
+                    if self._old_club_id:
+                        Club.objects.filter(
+                            club_id=self._old_club_id, 
+                            president=instance.name
+                        ).update(president="")
+            except Role.DoesNotExist:
+                pass
+        
+        if commit:
+            instance.save()
+            # 更新旧值
+            self._old_role_id = instance.role_id
+            self._old_club_id = instance.club_id
+        
+        return instance
     
     def clean_phone(self):
         phone = self.cleaned_data.get("phone")
@@ -184,6 +269,10 @@ class MemberModelForm(BootstrapModelForm):
         member_id = self.cleaned_data.get("member_id")
         if not member_id:
             raise ValidationError("学号不能为空")
+        # 编辑时跳过重复检查（自己本身就是已存在的）
+        if not self.instance or not self.instance.pk:
+            if Member.objects.filter(member_id=member_id).exists():
+                raise ValidationError("该学号已存在")
         return member_id
     
     def clean(self):
@@ -207,59 +296,87 @@ class MemberModelForm(BootstrapModelForm):
 # 活动相关表单
 class ActivityModelForm(BootstrapModelForm):
     start_time = forms.DateTimeField(required=False,
+                                     label="开始时间",
                                      widget=forms.DateTimeInput(attrs={"class": "form-control", "type": "datetime-local"}))
     end_time = forms.DateTimeField(required=False,
+                                   label="结束时间",
                                    widget=forms.DateTimeInput(attrs={"class": "form-control", "type": "datetime-local"}))
-    
+
     class Meta:
         model = Activity
         fields = ["title", "club", "description", "location", "start_time", "end_time", 
                  "max_participants", "organizer", "status"]
-    
+
     def __init__(self, *args, club_id=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['title'].label = "活动标题"
+        self.fields['club'].label = "所属社团"
+        self.fields['description'].label = "活动描述"
+        self.fields['location'].label = "活动地点"
+        self.fields['max_participants'].label = "最大参与人数"
+        self.fields['organizer'].label = "组织者"
+        self.fields['status'].label = "状态"
         # 限制组织者只能选择本社团的成员
         if club_id:
-            self.fields["organizer"].queryset = Member.objects.filter(club_id=club_id, status=1)
+            self.fields["organizer"].queryset = Member.objects.filter(club_id=club_id, club__isnull=False)
         elif self.instance and self.instance.club_id:
-            self.fields["organizer"].queryset = Member.objects.filter(club_id=self.instance.club_id, status=1)
+            self.fields["organizer"].queryset = Member.objects.filter(club_id=self.instance.club_id, club__isnull=False)
         else:
             # 如果没有指定社团，显示所有在团成员
-            self.fields["organizer"].queryset = Member.objects.filter(status=1)
+            self.fields["organizer"].queryset = Member.objects.filter(club__isnull=False)
 
 
 # 活动报名相关表单
 class ActivityRegistrationModelForm(BootstrapModelForm):
-    register_time = forms.DateTimeField(required=False,
-                                       widget=forms.DateTimeInput(attrs={"class": "form-control", "type": "datetime-local"}))
-    
     class Meta:
         model = ActivityRegistration
-        fields = ["activity", "member", "status", "remark"]
+        fields = ["activity", "member", "status"]
 
 
 # 招新批次相关表单
 class RecruitmentModelForm(BootstrapModelForm):
     start_date = forms.DateField(required=False,
+                                 label="开始日期",
                                  widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}))
     end_date = forms.DateField(required=False,
+                               label="结束日期",
                                widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}))
-    
+
     class Meta:
         model = Recruitment
         fields = ["club", "title", "start_date", "end_date", "status"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['club'].label = "所属社团"
+        self.fields['title'].label = "招新批次标题"
+        self.fields['status'].label = "状态"
 
 
 # 招新报名相关表单
 class RecruitmentApplicationModelForm(BootstrapModelForm):
     apply_time = forms.DateTimeField(required=False,
+                                     label="申请时间",
                                      widget=forms.DateTimeInput(attrs={"class": "form-control", "type": "datetime-local"}))
-    
+
     class Meta:
         model = RecruitmentApplication
         fields = ["recruitment", "student_id", "name", "gender", "grade", "major", "phone", "email",
                   "status", "apply_time", "remark"]
-    
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['recruitment'].label = "招新批次"
+        self.fields['student_id'].label = "学号"
+        self.fields['name'].label = "姓名"
+        self.fields['gender'].label = "性别"
+        self.fields['grade'].label = "年级"
+        self.fields['major'].label = "专业"
+        self.fields['phone'].label = "手机号"
+        self.fields['email'].label = "邮箱"
+        self.fields['status'].label = "状态"
+        self.fields['remark'].label = "备注"
+
     def clean_phone(self):
         phone = self.cleaned_data.get("phone")
         if phone and len(phone) != 11:

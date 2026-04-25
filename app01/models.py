@@ -27,12 +27,6 @@ class Club(models.Model):
     president = models.CharField(verbose_name="社长姓名", max_length=30, null=True, blank=True)
     contact_phone = models.CharField(verbose_name="联系电话", max_length=11, null=True, blank=True)
     contact_email = models.EmailField(verbose_name="联系邮箱", null=True, blank=True)
-    status_choices = (
-        (1, "正常"),
-        (2, "暂停"),
-        (3, "解散"),
-    )
-    status = models.SmallIntegerField(verbose_name="状态", choices=status_choices, default=1)
     create_time = models.DateTimeField(verbose_name="创建时间", null=True, blank=True, default=datetime.datetime.now)
 
     class Meta:
@@ -69,7 +63,6 @@ class Role(models.Model):
         (2, "普通成员"),
     )
     level = models.SmallIntegerField(verbose_name="级别", choices=level_choices, default=2)
-    description = models.TextField(verbose_name="角色描述", null=True, blank=True)
 
     class Meta:
         verbose_name = "角色"
@@ -105,13 +98,6 @@ class Member(models.Model):
     role = models.ForeignKey(to="Role", to_field="role_id", related_name="members",
                              verbose_name="角色", null=True, blank=True, on_delete=models.SET_NULL)
     join_time = models.DateTimeField(verbose_name="加入时间", null=True, blank=True, default=datetime.datetime.now)
-    status_choices = (
-        (1, "正常"),
-        (2, "请假"),
-        (3, "退社"),
-    )
-    status = models.SmallIntegerField(verbose_name="状态", choices=status_choices, default=1)
-    remark = models.TextField(verbose_name="备注", null=True, blank=True)
     password = models.CharField(verbose_name="登录密码", max_length=64, null=True, blank=True)
 
     class Meta:
@@ -160,7 +146,6 @@ class ActivityRegistration(models.Model):
                                 verbose_name="活动", null=False, blank=False, on_delete=models.CASCADE)
     member = models.ForeignKey(to="Member", to_field="member_id", related_name="registrations",
                               verbose_name="成员", null=False, blank=False, on_delete=models.CASCADE)
-    register_time = models.DateTimeField(verbose_name="报名时间", null=True, blank=True, default=datetime.datetime.now)
     status_choices = (
         (1, "已报名"),
         (2, "已参加"),
@@ -168,7 +153,6 @@ class ActivityRegistration(models.Model):
         (4, "未参加"),
     )
     status = models.SmallIntegerField(verbose_name="状态", choices=status_choices, default=1)
-    remark = models.TextField(verbose_name="备注", null=True, blank=True)
 
     class Meta:
         verbose_name = "活动报名"
@@ -251,7 +235,6 @@ class Announcement(models.Model):
     status_choices = (
         (1, "发布"),
         (2, "草稿"),
-        (3, "删除"),
     )
     status = models.SmallIntegerField(verbose_name="状态", choices=status_choices, default=1)
     is_top = models.BooleanField(verbose_name="置顶", default=False)

@@ -24,48 +24,39 @@ def member_profile(req):
     if req.method == "GET":
         from app01.srcs.forms.form import MemberModelForm
         form = MemberModelForm(instance=me)
-        # 成员只能改部分字段：姓名、手机、邮箱、备注；学号/社团/角色等只读或隐藏
-        for fname in ["member_id", "club", "role", "join_time", "status"]:
+        # 成员只能改部分字段：姓名、手机、邮箱；学号/社团/角色等只读或隐藏
+        for fname in ["member_id", "club", "role", "join_time"]:
             if fname in form.fields:
                 form.fields[fname].disabled = True
-        
-        # 获取活动参与历史
-        registrations = ActivityRegistration.objects.filter(member=me).select_related('activity').order_by('-register_time')
-        comments = ActivityComment.objects.filter(member=me).select_related('activity').order_by('-create_time')[:10]  # 最近10条评论
-        photos = ActivityPhoto.objects.filter(member=me).select_related('activity').order_by('-upload_time')[:10]  # 最近10张照片
-        likes = ActivityLike.objects.filter(member=me).select_related('activity').order_by('-like_time')[:10]  # 最近10个点赞
-        
-        # 获取关注数据
-        following = Follow.objects.filter(follower=me).select_related('followed').order_by('-follow_time')
         
         context = {
             "form": form, 
             "member": me,
-            "registrations": registrations,
-            "comments": comments,
-            "photos": photos,
-            "likes": likes,
-            "following": following,
         }
         return render(req, "member_portal/profile.html", context)
 
     from app01.srcs.forms.form import MemberModelForm
     form = MemberModelForm(data=req.POST, files=req.FILES, instance=me)
-    # 不允许通过表单修改学号、社团、角色、加入时间、状态
-    # 但是需要确保这些字段的值被包含在表单数据中以通过验证
-    if 'member_id' not in req.POST:
-        form.data = form.data.copy()
-        form.data['member_id'] = me.member_id
-    if 'status' not in req.POST:
-        form.data = form.data.copy()
-        form.data['status'] = me.status
+    # disabled 字段浏览器不提交，需手动注入原值
+    if 'club' not in form.data:
+        data = form.data.copy()
+        data['club'] = me.club_id or ''
+        form.data = data
+    if 'role' not in form.data:
+        data = form.data.copy()
+        data['role'] = me.role_id or ''
+        form.data = data
+    if 'join_time' not in form.data and me.join_time:
+        data = form.data.copy()
+        data['join_time'] = str(me.join_time)
+        form.data = data
     if form.is_valid():
         inst = form.save(commit=False)
+        # 强制保留不允许修改的字段，防止 disabled 字段在提交时被清空
         inst.member_id = me.member_id
         inst.club_id = me.club_id
         inst.role_id = me.role_id
         inst.join_time = me.join_time
-        inst.status = me.status
         inst.save()
         # 同步 session 中的用户信息，确保导航栏头像和姓名更新
         if req.session.get("info"):
@@ -73,7 +64,7 @@ def member_profile(req):
             req.session["info"]["avatar"] = inst.avatar.url if inst.avatar else None
             req.session.modified = True
         return redirect("/member/profile/")
-    for fname in ["member_id", "club", "role", "join_time", "status"]:
+    for fname in ["member_id", "club", "role", "join_time"]:
         if fname in form.fields:
             form.fields[fname].disabled = True
     return render(req, "member_portal/profile.html", {"form": form, "member": me})
@@ -166,10 +157,15 @@ def do_register(req, activity_id):
 
 
 def leave_club(req):
-    """成员退出社团"""
+    """成员退出社团（社长必须先转让社长身份）"""
     me = _member_required(req)
     if not me:
         return redirect("/login/")
+    
+    # 检查是否是社长（role.level == 1）
+    if me.role and me.role.level == 1:
+        # 社长必须先转让身份才能退出，重定向到转让页面
+        return redirect("/club/transfer/")
     
     if req.method == "POST":
         # 获取当前社团ID（用于更新招新申请）

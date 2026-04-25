@@ -81,7 +81,7 @@ def profile_view(req, member_id):
         participated_activities = ActivityRegistration.objects.filter(
             member=member_obj,
             status__in=[1, 2]  # 已报名或已参加
-        ).select_related('activity').order_by('-register_time')
+        ).select_related('activity').order_by('-registration_id')
 
         following_count = Follow.objects.filter(follower=member_obj).count()
         followers_count = Follow.objects.filter(followed=member_obj).count()

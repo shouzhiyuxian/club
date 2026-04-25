@@ -1,7 +1,7 @@
 import datetime
 import json
 from django.shortcuts import render, redirect, HttpResponse
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.db.models.functions import TruncMonth
 from app01.models import Club, Member, Activity, ActivityRegistration, Department, Role
 from app01.srcs.utils.role_helper import get_request_role
@@ -9,7 +9,7 @@ from app01.srcs.utils.role_helper import get_request_role
 
 def _dashboard_for_club(club_id):
     """按社团 ID 汇总仪表盘数据（供社长单社团或管理员查看某社团）"""
-    base_members = Member.objects.filter(club_id=club_id)
+    base_members = Member.objects.filter(club_id=club_id, club__isnull=False)  # 统计该社团的成员
     base_activities = Activity.objects.filter(club_id=club_id)
     member_count = base_members.count()
     activity_count = base_activities.count()
@@ -54,7 +54,8 @@ def _dashboard_for_club(club_id):
 def _dashboard_full():
     """全平台仪表盘（仅管理员）"""
     club_count = Club.objects.count()
-    member_count = Member.objects.count()
+    # 统计所有有社团的成员
+    member_count = Member.objects.filter(club__isnull=False).count()
     activity_count = Activity.objects.count()
     registration_count = ActivityRegistration.objects.count()
     members_per_club = list(

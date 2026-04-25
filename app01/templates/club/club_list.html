@@ -22,12 +22,7 @@
                 导出
             </a>
             {% endif %}
-            {% if request.session.info.type == "admin" %}
-            <a class="btn btn-outline-primary" href="/club/presidents/">
-                <i class="bi bi-person-badge"></i>
-                社长查看
-            </a>
-            {% endif %}
+
         </div>
     </div>
 
@@ -40,17 +35,6 @@
                     <i class="bi bi-building fs-1 me-3 opacity-75"></i>
                     <div>
                         <h6 class="mb-0">社团总数</h6>
-                        <h4 class="mb-0">{{ queryset|length }}</h4>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 col-sm-6">
-            <div class="card bg-success text-white shadow-sm">
-                <div class="card-body d-flex align-items-center">
-                    <i class="bi bi-check-circle fs-1 me-3 opacity-75"></i>
-                    <div>
-                        <h6 class="mb-0">正常运营</h6>
                         <h4 class="mb-0">{{ queryset|length }}</h4>
                     </div>
                 </div>
@@ -88,13 +72,10 @@
         <div class="col-lg-4 col-md-6">
             <div class="card shadow-sm h-100 border-0">
                 <div class="card-header bg-white border-0 pt-4 pb-0">
-                    <div class="d-flex justify-content-between align-items-start">
+                    <div class="d-flex align-items-start">
                         <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
                             <i class="bi bi-people-fill text-primary fs-3"></i>
                         </div>
-                        <span class="badge {% if obj.status == 1 %}bg-success{% elif obj.status == 2 %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
-                            {{ obj.get_status_display }}
-                        </span>
                     </div>
                 </div>
                 <div class="card-body">
@@ -106,7 +87,7 @@
                         </div>
                         <div class="d-flex align-items-center mb-2 text-muted">
                             <i class="bi bi-people me-2"></i>
-                            <span>成员: <strong>{{ obj.members.count|default:0 }}</strong> 人</span>
+                            <span>成员: <strong>{{ obj.member_count|default:0 }}</strong> 人</span>
                         </div>
                         <div class="d-flex align-items-center mb-2 text-muted">
                             <i class="bi bi-calendar3 me-2"></i>

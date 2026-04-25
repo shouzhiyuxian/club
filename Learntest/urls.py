@@ -41,7 +41,6 @@ urlpatterns = [
     path("club/<int:nid>/edit/", club.club_edit),
     path("club/delete/", club.club_delete),
     path("club/transfer/", club.club_transfer),
-    path("club/presidents/", club.president_view),
     
     # 角色管理
     path("role/list", role.role_list),

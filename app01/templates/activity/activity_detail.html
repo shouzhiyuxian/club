@@ -62,7 +62,6 @@
                               <th scope="col">报名ID</th>
                               <th scope="col">成员姓名</th>
                               <th scope="col">学号</th>
-                              <th scope="col">报名时间</th>
                               <th scope="col">状态</th>
                               <th scope="col">操作</th>
                             </tr>
@@ -78,7 +77,6 @@
                               <th scope="row">{{ reg.registration_id }}</th>
                               <td>{{ reg.member.name}}</td>
                               <td>{{ reg.member.member_id}}</td>
-                              <td>{{ reg.register_time}}</td>
                               <td>{{ reg.get_status_display}}</td>
                               <td>
                                   <a class="btn btn-primary btn-sm" href="/registration/{{ reg.registration_id }}/edit">编辑</a>
