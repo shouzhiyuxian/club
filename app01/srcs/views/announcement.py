@@ -63,7 +63,11 @@ def announcement_add(request):
 
     form = AnnouncementModelForm(data=request.POST)
     if form.is_valid():
-        # 发布者：仅管理员有 MyAdmin 账号，社长的 session id 是成员 id 不能填到 publisher
+        # 发布者：记录发布者姓名
+        publisher_name = request.session.get("info", {}).get("name", "")
+        form.instance.publisher_name = publisher_name
+        
+        # 仅管理员有 MyAdmin 账号，社长的 session id 是成员 id 不能填到 publisher
         if role == "admin":
             admin_id = request.session.get("info", {}).get("id")
             if admin_id:

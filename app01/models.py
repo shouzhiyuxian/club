@@ -230,7 +230,8 @@ class Announcement(models.Model):
     club = models.ForeignKey(to="Club", to_field="club_id", related_name="announcements",
                             verbose_name="所属社团", null=True, blank=True, on_delete=models.CASCADE)
     publisher = models.ForeignKey(to="MyAdmin", to_field="id", related_name="announcements",
-                                  verbose_name="发布者", null=True, blank=True, on_delete=models.SET_NULL)
+                                  verbose_name="发布者(管理员)", null=True, blank=True, on_delete=models.SET_NULL)
+    publisher_name = models.CharField(verbose_name="发布者姓名", max_length=32, null=True, blank=True)
     publish_time = models.DateTimeField(verbose_name="发布时间", null=True, blank=True, default=datetime.datetime.now)
     status_choices = (
         (1, "发布"),

@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django import forms
-from app01.models import Member, Club, Department, Role, Follow
+from app01.models import Member, Club, Department, Role, Follow, RecruitmentApplication
 from app01.srcs.views.profile import _can_view_profile
 from app01.utils.page_nav import PageNav
 from app01.srcs.forms.form import MemberModelForm
@@ -158,7 +158,18 @@ def member_delete(req):
             president=obj.name
         ).update(president="")
     
+    # 保存学号，用于后续清理招新报名记录
+    student_id = obj.member_id
+    
     Member.objects.filter(member_id=nid).delete()
+    
+    # 删除成员后，清理该成员的招新报名记录
+    # 删除所有该学号的招新申请记录（而不是仅仅改状态）
+    # 这样该学号可以重新报名任何社团
+    RecruitmentApplication.objects.filter(
+        student_id=student_id
+    ).delete()
+    
     return redirect("/member/list")
 
 

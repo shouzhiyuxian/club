@@ -127,15 +127,7 @@
                             </a>
                             {% endif %}
                         {% else %}
-                            {% if my_club_id %}
-                            <button class="btn btn-secondary btn-sm w-100" disabled>
-                                <i class="bi bi-check-circle"></i> 已加入社团
-                            </button>
-                            {% elif obj.status != 1 %}
-                            <button class="btn btn-secondary btn-sm w-100" disabled>
-                                <i class="bi bi-x-circle"></i> 已结束
-                            </button>
-                            {% elif obj.my_apply_status == 1 %}
+                            {% if obj.my_apply_status == 1 %}
                             <button class="btn btn-outline-secondary btn-sm w-100" disabled>
                                 <i class="bi bi-hourglass-split"></i> 已申请（待审核）
                             </button>
@@ -147,6 +139,14 @@
                             <a class="btn btn-warning btn-sm w-100" href="/recruitment/{{ obj.recruitment_id }}/apply/">
                                 <i class="bi bi-arrow-clockwise"></i> 重新申请
                             </a>
+                            {% elif my_club_id %}
+                            <button class="btn btn-secondary btn-sm w-100" disabled>
+                                <i class="bi bi-check-circle"></i> 已加入社团
+                            </button>
+                            {% elif obj.status != 1 %}
+                            <button class="btn btn-secondary btn-sm w-100" disabled>
+                                <i class="bi bi-x-circle"></i> 已结束
+                            </button>
                             {% else %}
                             <a class="btn btn-info btn-sm w-100" href="/recruitment/{{ obj.recruitment_id }}/apply/">
                                 <i class="bi bi-person-plus-fill"></i> 立即报名

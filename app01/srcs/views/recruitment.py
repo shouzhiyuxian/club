@@ -54,6 +54,7 @@ def recruitment_list(req):
     page_nav_obj = PageNav(req, queryset)
     clubs = Club.objects.all() if role_type == "admin" else Club.objects.filter(club_id=club_id_role)
     my_apply_status_map = {}
+    my_apply_department_map = {}  # 存储申请部门信息
     my_club_id = None  # 当前成员已加入的社团ID
     if role_type in ("member", "president"):
         _, _, member_id = get_request_role(req)
@@ -72,9 +73,11 @@ def recruitment_list(req):
             for app in applications:
                 if app.recruitment_id not in my_apply_status_map:
                     my_apply_status_map[app.recruitment_id] = app.status
+                    my_apply_department_map[app.recruitment_id] = app.apply_department
             
             for obj in page_nav_obj.page_queryset:
                 obj.my_apply_status = my_apply_status_map.get(obj.recruitment_id)
+                obj.my_apply_department = my_apply_department_map.get(obj.recruitment_id)
 
     apply_result = req.GET.get("apply_result", "")
     apply_message_map = {
