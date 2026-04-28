@@ -324,6 +324,18 @@ class ActivityModelForm(BootstrapModelForm):
         else:
             # 如果没有指定社团，显示所有在团成员
             self.fields["organizer"].queryset = Member.objects.filter(club__isnull=False)
+    
+    def clean(self):
+        """验证组织者是否属于选中的社团"""
+        cleaned_data = super().clean()
+        club = cleaned_data.get("club")
+        organizer = cleaned_data.get("organizer")
+        
+        if club and organizer:
+            if organizer.club_id != club.club_id:
+                raise forms.ValidationError("组织者必须是该社团的成员")
+        
+        return cleaned_data
 
 
 # 活动报名相关表单

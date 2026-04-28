@@ -32,3 +32,44 @@
 
 {% endblock %}
 
+{% block js %}
+<script>
+$(document).ready(function() {
+    // 监听社团选择变化
+    $('#id_club').change(function() {
+        var clubId = $(this).val();
+        var $organizerSelect = $('#id_organizer');
+        var currentOrganizerId = $organizerSelect.val(); // 保存当前选中的组织者
+        
+        // 清空组织者下拉框
+        $organizerSelect.empty();
+        $organizerSelect.append('<option value="">---------</option>');
+        
+        if (clubId) {
+            // 发送 AJAX 请求获取该社团的成员
+            $.ajax({
+                url: '/activity/get-members/',
+                data: { 'club_id': clubId },
+                dataType: 'json',
+                success: function(data) {
+                    if (data.members && data.members.length > 0) {
+                        $.each(data.members, function(index, member) {
+                            var option = $('<option></option>').val(member.id).text(member.name);
+                            // 如果是当前选中的组织者，标记为选中
+                            if (member.id == currentOrganizerId) {
+                                option.attr('selected', 'selected');
+                            }
+                            $organizerSelect.append(option);
+                        });
+                    }
+                },
+                error: function() {
+                    console.log('获取成员列表失败');
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}
+

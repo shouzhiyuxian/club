@@ -123,7 +123,7 @@ def member_add(req):
             form.fields["club"].queryset = Club.objects.filter(club_id=club_id_role)
             form.fields["club"].initial = Club.objects.filter(club_id=club_id_role).first()
         return render(req, "member/member_add.html", {"form": form})
-    form = MemberModelForm(data=req.POST)
+    form = MemberModelForm(data=req.POST, files=req.FILES)
     if form.is_valid():
         if role_type == "president" and club_id_role:
             form.instance.club_id = club_id_role
@@ -178,7 +178,7 @@ def member_edit(req, nid):
         form = MemberModelForm(instance=row_obj)
         return render(req, "member/member_edit.html", {"form": form})
     
-    form = MemberModelForm(data=req.POST, instance=row_obj)
+    form = MemberModelForm(data=req.POST, files=req.FILES, instance=row_obj)
     if form.is_valid():
         if form.instance.join_time is None:
             form.instance.join_time = ct

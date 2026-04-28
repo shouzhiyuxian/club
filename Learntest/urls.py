@@ -62,6 +62,7 @@ urlpatterns = [
     path("activity/<int:nid>/detail/", activity.activity_detail),
     path("activity/<int:nid>/mark-attended/", activity.activity_mark_attended),
     path("activity/delete/", activity.activity_delete),
+    path("activity/get-members/", activity.get_members_by_club),  # AJAX API：获取社团成员
     
     # 活动报名管理
     path("registration/list", registration.registration_list),

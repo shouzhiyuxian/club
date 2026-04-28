@@ -32,3 +32,40 @@
 
 {% endblock %}
 
+{% block js %}
+<script>
+$(document).ready(function() {
+    // 监听社团选择变化
+    $('#id_club').change(function() {
+        var clubId = $(this).val();
+        var $organizerSelect = $('#id_organizer');
+        
+        // 清空组织者下拉框
+        $organizerSelect.empty();
+        $organizerSelect.append('<option value="">---------</option>');
+        
+        if (clubId) {
+            // 发送 AJAX 请求获取该社团的成员
+            $.ajax({
+                url: '/activity/get-members/',
+                data: { 'club_id': clubId },
+                dataType: 'json',
+                success: function(data) {
+                    if (data.members && data.members.length > 0) {
+                        $.each(data.members, function(index, member) {
+                            $organizerSelect.append(
+                                $('<option></option>').val(member.id).text(member.name)
+                            );
+                        });
+                    }
+                },
+                error: function() {
+                    console.log('获取成员列表失败');
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}
+

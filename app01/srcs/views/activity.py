@@ -215,3 +215,26 @@ def activity_mark_attended(req, nid):
     
     return redirect(f"/activity/{nid}/detail/")
 
+
+def get_members_by_club(req):
+    """AJAX API：获取指定社团的成员列表（用于动态更新组织者下拉框）"""
+    from django.http import JsonResponse
+    
+    club_id = req.GET.get("club_id")
+    if not club_id:
+        return JsonResponse({"members": []})
+    
+    try:
+        members = Member.objects.filter(club_id=int(club_id)).values(
+            "member_id", "name"
+        ).order_by("member_id")
+        
+        data = [{
+            "id": m["member_id"],
+            "name": m["name"]
+        } for m in members]
+        
+        return JsonResponse({"members": data})
+    except (ValueError, TypeError):
+        return JsonResponse({"members": []})
+

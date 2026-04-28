@@ -10,7 +10,7 @@
                 <strong>编辑成员</strong>
             </li>
             <li class="list-group-item">
-                <form method="post">
+                <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     {% for field in form %}
                         <div class="mb-3">
