@@ -192,15 +192,8 @@ class MemberModelForm(BootstrapModelForm):
             self.fields['member_id'].help_text = "学号（主键）不可修改"
             
             # 将禁用字段的原始值注入 data，防止提交时被清空
-            if self.data and hasattr(self.instance, 'club_id'):
-                data = self.data.copy()
-                if 'club' not in self.data:
-                    data['club'] = self.instance.club_id or ''
-                if 'role' not in self.data:
-                    data['role'] = self.instance.role_id or ''
-                if 'join_time' not in self.data:
-                    data['join_time'] = str(self.instance.join_time) if self.instance.join_time else ''
-                self.data = data
+            # 注意：不要修改 self.data，因为这会导致文件上传失败
+            # 而是在模板中使用 disabled 属性，并在视图中处理
         # 存储旧的 role_id 和 club_id，用于检测变更
         if self.instance and self.instance.pk:
             self._old_role_id = self.instance.role_id

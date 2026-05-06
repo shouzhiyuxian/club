@@ -5,6 +5,7 @@ from django import forms
 from app01.models import Member, Activity, ActivityRegistration, ActivityComment, ActivityPhoto, ActivityLike, Follow, ClubDiscussion, RecruitmentApplication
 from app01.utils.md5 import get_md5
 from app01.srcs.utils.role_helper import get_request_role
+from django.contrib import messages
 
 
 def _member_required(req):
@@ -29,27 +30,17 @@ def member_profile(req):
             if fname in form.fields:
                 form.fields[fname].disabled = True
         
+        avatar_url = me.avatar.url if me.avatar else None
+        print(f"DEBUG: member={me.name}, avatar={me.avatar}, avatar_url={avatar_url}")
         context = {
             "form": form, 
             "member": me,
+            "avatar_url": avatar_url,
         }
         return render(req, "member_portal/profile.html", context)
 
     from app01.srcs.forms.form import MemberModelForm
     form = MemberModelForm(data=req.POST, files=req.FILES, instance=me)
-    # disabled 字段浏览器不提交，需手动注入原值
-    if 'club' not in form.data:
-        data = form.data.copy()
-        data['club'] = me.club_id or ''
-        form.data = data
-    if 'role' not in form.data:
-        data = form.data.copy()
-        data['role'] = me.role_id or ''
-        form.data = data
-    if 'join_time' not in form.data and me.join_time:
-        data = form.data.copy()
-        data['join_time'] = str(me.join_time)
-        form.data = data
     if form.is_valid():
         inst = form.save(commit=False)
         # 强制保留不允许修改的字段，防止 disabled 字段在提交时被清空
@@ -63,6 +54,7 @@ def member_profile(req):
             req.session["info"]["name"] = inst.name
             req.session["info"]["avatar"] = inst.avatar.url if inst.avatar else None
             req.session.modified = True
+        messages.success(req, "个人信息更新成功！")
         return redirect("/member/profile/")
     for fname in ["member_id", "club", "role", "join_time"]:
         if fname in form.fields:

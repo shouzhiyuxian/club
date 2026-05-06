@@ -112,6 +112,7 @@ def profile_view(req, member_id):
             "common_activities": common_activities,
             "is_own_profile": viewer_member == member_obj if viewer_member else False,
             "is_admin_profile": False,
+            "avatar_url": member_obj.avatar.url if member_obj.avatar else None,
         }
     else:
         # 管理员个人主页

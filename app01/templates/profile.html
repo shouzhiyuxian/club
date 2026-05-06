@@ -22,8 +22,8 @@
                     {% else %}
                         <!-- 成员头像 -->
                         <div class="profile-avatar-wrapper mx-auto mb-3">
-                            {% if target_member.avatar %}
-                                <img src="{{ target_member.avatar.url }}" alt="头像" class="profile-avatar rounded-circle">
+                            {% if avatar_url %}
+                                <img src="{{ avatar_url }}" alt="头像" class="profile-avatar rounded-circle">
                             {% else %}
                                 <div class="profile-avatar bg-gradient-primary rounded-circle d-flex align-items-center justify-content-center">
                                     <i class="bi bi-person-fill text-white" style="font-size: 3rem;"></i>

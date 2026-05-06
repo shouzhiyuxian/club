@@ -191,9 +191,13 @@ def member_edit(req, nid):
     
     form = MemberModelForm(data=req.POST, files=req.FILES, instance=row_obj)
     if form.is_valid():
-        if form.instance.join_time is None:
-            form.instance.join_time = ct
-        form.save()
+        instance = form.save(commit=False)
+        if instance.join_time is None:
+            instance.join_time = ct
+        # 保持原有的 club 和 role（因为这些字段在表单中被禁用）
+        instance.club_id = row_obj.club_id
+        instance.role_id = row_obj.role_id
+        instance.save()
         return redirect("/member/list")
     return render(req, "member/member_edit.html", {"form": form})
 
