@@ -140,35 +140,69 @@ def member_add(req):
 
 
 def member_delete(req):
-    """删除成员（社长仅能删本社团成员）"""
-    role_type, club_id_role, _ = get_request_role(req)
+    """删除成员
+    - 管理员：直接删除成员
+    - 社长：仅能移除本社团成员（清空社团和角色），不能真正删除
+      - 社长不能移除自己（必须先转让社长身份）
+    """
+    from django.contrib import messages
+    
+    role_type, club_id_role, member_id_session = get_request_role(req)
     if role_type == "member":
         return redirect("/member/profile/")
+    
     nid = req.GET.get("nid")
     obj = Member.objects.filter(member_id=nid).first()
     if not obj:
         return redirect("/member/list")
+    
     if role_type == "president" and obj.club_id != club_id_role:
         return redirect("/member/list")
     
-    # 删除前，清除对应社团的社长信息（如果该成员是社长或社长字段匹配）
-    if obj.club_id and obj.name:
-        Club.objects.filter(
-            club_id=obj.club_id, 
-            president=obj.name
-        ).update(president="")
-    
-    # 保存学号，用于后续清理招新报名记录
-    student_id = obj.member_id
-    
-    Member.objects.filter(member_id=nid).delete()
-    
-    # 删除成员后，清理该成员的招新报名记录
-    # 删除所有该学号的招新申请记录（而不是仅仅改状态）
-    # 这样该学号可以重新报名任何社团
-    RecruitmentApplication.objects.filter(
-        student_id=student_id
-    ).delete()
+    if role_type == "president":
+        # 检查是否是社长在移除自己
+        if nid == member_id_session:
+            messages.error(req, "社长不能移除自己，请先到「社团管理 - 转让社长」转让社长身份！")
+            return redirect("/member/list")
+        
+        # 社长：仅能移除成员出社团，不能真正删除
+        # 清除对应社团的社长信息（如果该成员是社长）
+        if obj.club_id and obj.name:
+            Club.objects.filter(
+                club_id=obj.club_id, 
+                president=obj.name
+            ).update(president="")
+        
+        # 将成员的社团和角色清空（移除出社团）
+        obj.club = None
+        obj.department = None
+        obj.role = None
+        obj.save()
+        
+        # 将该成员在本社团的"已通过"招新申请改为"已拒绝"
+        # 这样该成员可以重新报名其他社团
+        RecruitmentApplication.objects.filter(
+            student_id=obj.member_id,
+            status=2,  # 已通过
+            recruitment__club_id=club_id_role
+        ).update(status=3)  # 改为已拒绝
+        
+    else:
+        # 管理员：直接删除成员
+        # 删除前，清除对应社团的社长信息
+        if obj.club_id and obj.name:
+            Club.objects.filter(
+                club_id=obj.club_id, 
+                president=obj.name
+            ).update(president="")
+        
+        # 保存学号，用于后续清理招新报名记录
+        student_id = obj.member_id
+        
+        Member.objects.filter(member_id=nid).delete()
+        
+        # 删除该成员的招新报名记录
+        RecruitmentApplication.objects.filter(student_id=student_id).delete()
     
     return redirect("/member/list")
 
@@ -187,14 +221,27 @@ def member_edit(req, nid):
     ct = row_obj.join_time
     if req.method == "GET":
         form = MemberModelForm(instance=row_obj)
+        # 社长编辑时，禁用社团字段（社长不能修改成员的社团归属）
+        if role_type == "president":
+            if "club" in form.fields:
+                form.fields["club"].disabled = True
+            if "role" in form.fields:
+                form.fields["role"].disabled = True
         return render(req, "member/member_edit.html", {"form": form})
     
     form = MemberModelForm(data=req.POST, files=req.FILES, instance=row_obj)
+    # 社长编辑时，禁用社团字段
+    if role_type == "president":
+        if "club" in form.fields:
+            form.fields["club"].disabled = True
+        if "role" in form.fields:
+            form.fields["role"].disabled = True
+    
     if form.is_valid():
         instance = form.save(commit=False)
         if instance.join_time is None:
             instance.join_time = ct
-        # 保持原有的 club 和 role（因为这些字段在表单中被禁用）
+        # 保持原有的 club 和 role（社长不能修改这些字段）
         instance.club_id = row_obj.club_id
         instance.role_id = row_obj.role_id
         instance.save()

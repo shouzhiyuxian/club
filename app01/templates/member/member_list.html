@@ -129,10 +129,14 @@
                         <a class="btn btn-outline-warning btn-sm" href="/member/{{ obj.member_id }}/reset/">
                             <i class="bi bi-key"></i>
                         </a>
-                        {% endif %}
                         <a class="btn btn-outline-danger btn-sm" href="/member/delete/?nid={{ obj.member_id }}" onclick="return confirm('确定删除成员 {{ obj.name }} 吗？')">
-                            <i class="bi bi-trash"></i>
+                            <i class="bi bi-trash"></i> 删除
                         </a>
+                        {% else %}
+                        <a class="btn btn-outline-danger btn-sm" href="/member/delete/?nid={{ obj.member_id }}" onclick="return confirm('确定将成员 {{ obj.name }} 移出社团吗？')">
+                            <i class="bi bi-box-arrow-right"></i> 移除
+                        </a>
+                        {% endif %}
                         {% endif %}
                     </div>
                 </div>

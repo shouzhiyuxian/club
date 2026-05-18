@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>社团管理系统 - 毕业设计答辩PPT</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+            background: #f0f2f5;
+        }
+        .slide-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .slide {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            padding: 60px;
+            min-height: 675px;
+            position: relative;
+        }
+        .slide-number {
+            position: absolute;
+            bottom: 30px;
+            right: 40px;
+            color: #999;
+            font-size: 14px;
+        }
+
+        /* 封面页 */
+        .slide.cover {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .slide.cover h1 {
+            font-size: 52px;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+        .slide.cover .subtitle {
+            font-size: 28px;
+            color: #64b5f6;
+            margin-bottom: 60px;
+        }
+        .slide.cover .info {
+            font-size: 20px;
+            color: #ccc;
+            line-height: 2;
+        }
+
+        /* 标题页 */
+        .slide h2 {
+            font-size: 42px;
+            color: #1a1a2e;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 4px solid #2196f3;
+        }
+
+        /* 目录页 */
+        .toc {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        .toc-item {
+            display: flex;
+            align-items: center;
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #2196f3;
+        }
+        .toc-item .num {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2196f3;
+            margin-right: 30px;
+            width: 50px;
+        }
+        .toc-item .text {
+            font-size: 22px;
+            color: #333;
+        }
+
+        /* 内容页 */
+        .content {
+            font-size: 20px;
+            line-height: 1.8;
+            color: #333;
+        }
+        .content ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .content li {
+            padding: 15px 0;
+            padding-left: 40px;
+            position: relative;
+        }
+        .content li::before {
+            content: "▸";
+            position: absolute;
+            left: 10px;
+            color: #2196f3;
+            font-size: 20px;
+        }
+        .content li strong {
+            color: #1976d2;
+        }
+
+        /* 两栏布局 */
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+        .column {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+        }
+        .column h3 {
+            font-size: 24px;
+            color: #1976d2;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #2196f3;
+        }
+        .column ul {
+            list-style: none;
+        }
+        .column li {
+            padding: 10px 0;
+            font-size: 18px;
+        }
+
+        /* 三栏布局 */
+        .three-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 30px;
+        }
+        .card {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .card .icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        .card h4 {
+            font-size: 22px;
+            color: #1976d2;
+            margin-bottom: 15px;
+        }
+        .card p {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* 流程图 */
+        .flow {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 30px 0;
+        }
+        .flow-item {
+            background: #e3f2fd;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-size: 16px;
+            color: #1976d2;
+        }
+        .flow-arrow {
+            color: #999;
+            font-size: 24px;
+        }
+
+        /* 代码块 */
+        .code-block {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: Consolas, monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        /* 表格 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background: #1976d2;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background: #f5f5f5;
+        }
+
+        /* 亮点卡片 */
+        .highlight-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+        }
+        .highlight-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+        }
+        .highlight-card h4 {
+            font-size: 22px;
+            margin-bottom: 15px;
+        }
+        .highlight-card p {
+            font-size: 16px;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        /* 结束页 */
+        .slide.end {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .slide.end h2 {
+            font-size: 52px;
+            color: white;
+            border: none;
+            margin-bottom: 40px;
+        }
+        .slide.end p {
+            font-size: 24px;
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+
+        <!-- 第1页：封面 -->
+        <div class="slide cover">
+            <h1>社团管理系统</h1>
+            <div class="subtitle">设计与实现</div>
+            <div class="info">
+                <p>毕业设计答辩</p>
+                <p>姓名：XXX</p>
+                <p>学号：XXXXXXXXXXXX</p>
+                <p>专业：计算机科学与技术</p>
+                <p>指导老师：XXX</p>
+                <p>答辩日期：2026年5月</p>
+            </div>
+            <div class="slide-number">1 / 16</div>
+        </div>
+
+        <!-- 第2页：目录 -->
+        <div class="slide">
+            <h2>答辩内容</h2>
+            <div class="toc">
+                <div class="toc-item">
+                    <span class="num">01</span>
+                    <span class="text">项目背景与意义</span>
+                </div>
+                <div class="toc-item">
+                    <span class="num">02</span>
+                    <span class="text">系统需求分析</span>
+                </div>
+                <div class="toc-item">
+                    <span class="num">03</span>
+                    <span class="text">系统设计</span>
+                </div>
+                <div class="toc-item">
+                    <span class="num">04</span>
+                    <span class="text">系统实现</span>
+                </div>
+                <div class="toc-item">
+                    <span class="num">05</span>
+                    <span class="text">系统测试</span>
+                </div>
+                <div class="toc-item">
+                    <span class="num">06</span>
+                    <span class="text">总结与展望</span>
+                </div>
+            </div>
+            <div class="slide-number">2 / 16</div>
+        </div>
+
+        <!-- 第3页：项目背景 -->
+        <div class="slide">
+            <h2>项目背景与意义</h2>
+            <div class="content">
+                <ul>
+                    <li><strong>高校社团发展现状</strong>：学生社团数量增多，传统管理方式效率低</li>
+                    <li><strong>信息化需求</strong>：数字化管理成为必然趋势</li>
+                    <li><strong>系统目标</strong>：实现社团管理的信息化、网络化、规范化</li>
+                </ul>
+            </div>
+            <div class="two-column" style="margin-top: 40px;">
+                <div class="column">
+                    <h3>传统管理问题</h3>
+                    <ul>
+                        <li>纸质记录容易丢失</li>
+                        <li>信息传递不及时</li>
+                        <li>数据统计分析困难</li>
+                        <li>工作效率低下</li>
+                    </ul>
+                </div>
+                <div class="column">
+                    <h3>系统解决思路</h3>
+                    <ul>
+                        <li>电子化数据存储</li>
+                        <li>实时信息共享</li>
+                        <li>自动化统计报表</li>
+                        <li>提升管理效率</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="slide-number">3 / 16</div>
+        </div>
+
+        <!-- 第4页：系统功能模块 -->
+        <div class="slide">
+            <h2>系统功能模块</h2>
+            <div class="three-column">
+                <div class="card">
+                    <div class="icon">👤</div>
+                    <h4>用户管理</h4>
+                    <p>管理员、社长、普通成员三级权限管理</p>
+                </div>
+                <div class="card">
+                    <div class="icon">🏢</div>
+                    <h4>社团管理</h4>
+                    <p>社团创建、编辑、转让社长、社团解散</p>
+                </div>
+                <div class="card">
+                    <div class="icon">👥</div>
+                    <h4>成员管理</h4>
+                    <p>成员添加、编辑、移除、权限设置</p>
+                </div>
+            </div>
+            <div class="three-column" style="margin-top: 20px;">
+                <div class="card">
+                    <div class="icon">📅</div>
+                    <h4>活动管理</h4>
+                    <p>活动发布、报名、签到、评价</p>
+                </div>
+                <div class="card">
+                    <div class="icon">📢</div>
+                    <h4>公告管理</h4>
+                    <p>社团公告发布、查看、置顶</p>
+                </div>
+                <div class="card">
+                    <div class="icon">📝</div>
+                    <h4>招新管理</h4>
+                    <p>招新发布、报名审核、批量录取</p>
+                </div>
+            </div>
+            <div class="slide-number">4 / 16</div>
+        </div>
+
+        <!-- 第5页：技术架构 -->
+        <div class="slide">
+            <h2>技术架构</h2>
+            <div class="content">
+                <div class="flow">
+                    <div class="flow-item">浏览器<br>(前端)</div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-item">Django<br>(后端框架)</div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-item">MySQL<br>(数据库)</div>
+                </div>
+            </div>
+            <div class="two-column" style="margin-top: 30px;">
+                <div class="column">
+                    <h3>前端技术</h3>
+                    <ul>
+                        <li>HTML5 + CSS3</li>
+                        <li>Bootstrap 5 (响应式框架)</li>
+                        <li>jQuery (DOM操作、AJAX)</li>
+                        <li>JavaScript</li>
+                    </ul>
+                </div>
+                <div class="column">
+                    <h3>后端技术</h3>
+                    <ul>
+                        <li>Python 3</li>
+                        <li>Django 框架</li>
+                        <li>MySQL 数据库</li>
+                        <li>Session 会话管理</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="slide-number">5 / 16</div>
+        </div>
+
+        <!-- 第6页：前后端交互 -->
+        <div class="slide">
+            <h2>前后端数据交互</h2>
+            <div class="content">
+                <ul>
+                    <li><strong>GET 请求</strong>：获取页面，如访问列表页、详情页</li>
+                    <li><strong>POST 请求</strong>：提交表单，如登录、添加、编辑</li>
+                    <li><strong>AJAX 请求</strong>：无刷新交互，如动态加载、关注功能</li>
+                </ul>
+            </div>
+            <div class="code-block">
+# 后端视图函数示例
+def member_list(request):
+    queryset = Member.objects.all()              # 查询数据库
+    return render(request, "member/list.html", {"queryset": queryset})  # 返回页面
+
+def member_add(request):
+    if request.method == "POST":
+        form = MemberModelForm(request.POST)
+        if form.is_valid():
+            form.save()                          # 保存数据
+            return redirect("/member/list")     # 跳转页面
+            </div>
+            <div class="slide-number">6 / 16</div>
+        </div>
+
+        <!-- 第7页：数据库设计 -->
+        <div class="slide">
+            <h2>数据库设计</h2>
+            <table>
+                <tr>
+                    <th>表名</th>
+                    <th>说明</th>
+                    <th>主要字段</th>
+                </tr>
+                <tr>
+                    <td>Member</td>
+                    <td>成员信息表</td>
+                    <td>member_id, name, phone, club_id, role_id</td>
+                </tr>
+                <tr>
+                    <td>Club</td>
+                    <td>社团信息表</td>
+                    <td>club_id, name, president, category</td>
+                </tr>
+                <tr>
+                    <td>Activity</td>
+                    <td>活动信息表</td>
+                    <td>activity_id, title, club_id, time, location</td>
+                </tr>
+                <tr>
+                    <td>Announcement</td>
+                    <td>公告信息表</td>
+                    <td>announcement_id, title, content, club_id</td>
+                </tr>
+                <tr>
+                    <td>MyAdmin</td>
+                    <td>管理员表</td>
+                    <td>admin_id, account, user_name, password</td>
+                </tr>
+            </table>
+            <div class="slide-number">7 / 16</div>
+        </div>
+
+        <!-- 第8页：E-R图说明 -->
+        <div class="slide">
+            <h2>E-R图关系</h2>
+            <div class="content">
+                <ul>
+                    <li><strong>Member ↔ Club</strong>：成员属于社团（多对一）</li>
+                    <li><strong>Member ↔ Role</strong>：成员拥有角色（多对一）</li>
+                    <li><strong>Activity ↔ Club</strong>：活动属于社团（多对一）</li>
+                    <li><strong>Member ↔ Activity</strong>：成员参加活动（多对多）</li>
+                    <li><strong>Club ↔ Announcement</strong>：社团发布公告（多对一）</li>
+                </ul>
+            </div>
+            <div class="two-column" style="margin-top: 40px;">
+                <div class="column">
+                    <h3>一对一关系</h3>
+                    <ul>
+                        <li>Member ↔ MyAdmin（用户身份）</li>
+                    </ul>
+                </div>
+                <div class="column">
+                    <h3>多对多关系</h3>
+                    <ul>
+                        <li>Member ↔ Member（关注关系）</li>
+                        <li>Member ↔ Activity（活动报名）</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="slide-number">8 / 16</div>
+        </div>
+
+        <!-- 第9页：登录模块 -->
+        <div class="slide">
+            <h2>核心功能 - 登录验证</h2>
+            <div class="content">
+                <div class="flow">
+                    <div class="flow-item">输入账号密码</div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-item">MD5密码加密</div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-item">数据库校验</div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-item">Session存储</div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-item">跳转首页</div>
+                </div>
+            </div>
+            <div class="two-column" style="margin-top: 30px;">
+                <div class="column">
+                    <h3>安全机制</h3>
+                    <ul>
+                        <li>CSRF Token 防止跨站请求</li>
+                        <li>Session 会话验证</li>
+                        <li>中间件统一权限拦截</li>
+                        <li>密码 MD5 加密存储</li>
+                    </ul>
+                </div>
+                <div class="column">
+                    <h3>用户角色</h3>
+                    <ul>
+                        <li>超级管理员：系统管理</li>
+                        <li>社长：社团管理</li>
+                        <li>成员：个人中心</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="slide-number">9 / 16</div>
+        </div>
+
+        <!-- 第10页：社长权限 -->
+        <div class="slide">
+            <h2>核心功能 - 社长权限控制</h2>
+            <div class="content">
+                <ul>
+                    <li><strong>只能管理本社团</strong>：社长只能编辑、移除本社团成员</li>
+                    <li><strong>不能转让自己</strong>：移除成员时若选择自己，提示先转让社长</li>
+                    <li><strong>不能修改社团归属</strong>：编辑成员时，社团字段禁用</li>
+                    <li><strong>权限隔离</strong>：通过中间件和视图层双重校验</li>
+                </ul>
+            </div>
+            <div class="code-block">
+# 视图层权限校验示例
+role_type, club_id_role, _ = get_request_role(request)
+if role_type == "president" and member.club_id != club_id_role:
+    return redirect("/member/list")  # 非本社团成员，无权操作
+            </div>
+            <div class="slide-number">10 / 16</div>
+        </div>
+
+        <!-- 第11页：AJAX应用 -->
+        <div class="slide">
+            <h2>核心功能 - AJAX无刷新交互</h2>
+            <div class="content">
+                <p>场景：添加活动时，选择社团后自动加载该社团的成员列表</p>
+            </div>
+            <div class="code-block">
+// 前端：选择社团时触发
+$('#id_club').change(function() {
+    $.ajax({
+        url: '/activity/get-members/',
+        data: { 'club_id': clubId },
+        success: function(data) {
+            // 动态填充组织者下拉框
+            $.each(data.members, function(index, member) {
+                $organizerSelect.append(
+                    $('&lt;option&gt;&lt;/option&gt;').val(member.id).text(member.name)
+                );
+            });
+        }
+    });
+});
+            </div>
+            <div class="slide-number">11 / 16</div>
+        </div>
+
+        <!-- 第12页：系统截图 -->
+        <div class="slide">
+            <h2>系统效果展示</h2>
+            <div class="two-column">
+                <div class="column">
+                    <h3>登录页面</h3>
+                    <ul>
+                        <li>简洁清晰的登录界面</li>
+                        <li>支持管理员/成员登录</li>
+                        <li>错误提示信息</li>
+                    </ul>
+                </div>
+                <div class="column">
+                    <h3>成员列表页</h3>
+                    <ul>
+                        <li>分页显示</li>
+                        <li>搜索过滤</li>
+                        <li>操作按钮</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="two-column" style="margin-top: 30px;">
+                <div class="column">
+                    <h3>活动管理</h3>
+                    <ul>
+                        <li>活动信息完整展示</li>
+                        <li>报名人数统计</li>
+                        <li>状态标签显示</li>
+                    </ul>
+                </div>
+                <div class="column">
+                    <h3>个人中心</h3>
+                    <ul>
+                        <li>个人信息展示</li>
+                        <li>关注功能</li>
+                        <li>活动报名记录</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="slide-number">12 / 16</div>
+        </div>
+
+        <!-- 第13页：系统测试 -->
+        <div class="slide">
+            <h2>系统测试</h2>
+            <table>
+                <tr>
+                    <th>测试模块</th>
+                    <th>测试内容</th>
+                    <th>结果</th>
+                </tr>
+                <tr>
+                    <td>登录功能</td>
+                    <td>正确账号密码登录、错误密码拒绝、Session验证</td>
+                    <td>✓ 通过</td>
+                </tr>
+                <tr>
+                    <td>权限控制</td>
+                    <td>社长只能管理本社团、成员不能访问管理页面</td>
+                    <td>✓ 通过</td>
+                </tr>
+                <tr>
+                    <td>CRUD操作</td>
+                    <td>增删改查功能正常、数据正确保存</td>
+                    <td>✓ 通过</td>
+                </tr>
+                <tr>
+                    <td>表单验证</td>
+                    <td>必填项检查、格式验证、错误提示</td>
+                    <td>✓ 通过</td>
+                </tr>
+                <tr>
+                    <td>页面响应</td>
+                    <td>不同屏幕尺寸适配、加载速度</td>
+                    <td>✓ 通过</td>
+                </tr>
+            </table>
+            <div class="slide-number">13 / 16</div>
+        </div>
+
+        <!-- 第14页：项目亮点 -->
+        <div class="slide">
+            <h2>项目亮点</h2>
+            <div class="highlight-cards">
+                <div class="highlight-card">
+                    <h4>🔐 三级权限管理</h4>
+                    <p>管理员、社长、普通成员分级管理，权限清晰隔离</p>
+                </div>
+                <div class="highlight-card">
+                    <h4>⚡ AJAX无刷新</h4>
+                    <p>动态加载数据，用户体验流畅，减少页面刷新</p>
+                </div>
+                <div class="highlight-card">
+                    <h4>📱 响应式设计</h4>
+                    <p>基于Bootstrap，适配PC和移动端设备</p>
+                </div>
+                <div class="highlight-card">
+                    <h4>🔒 安全防护</h4>
+                    <p>CSRF Token、Session验证、密码加密存储</p>
+                </div>
+            </div>
+            <div class="slide-number">14 / 16</div>
+        </div>
+
+        <!-- 第15页：不足与展望 -->
+        <div class="slide">
+            <h2>不足与展望</h2>
+            <div class="two-column">
+                <div class="column">
+                    <h3>当前不足</h3>
+                    <ul>
+                        <li>未实现文件上传功能</li>
+                        <li>没有消息通知系统</li>
+                        <li>未使用Redis缓存</li>
+                        <li>并发性能有限</li>
+                    </ul>
+                </div>
+                <div class="column">
+                    <h3>未来改进</h3>
+                    <ul>
+                        <li>引入即时通讯功能</li>
+                        <li>增加数据可视化统计</li>
+                        <li>对接微信小程序</li>
+                        <li>优化数据库查询性能</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="slide-number">15 / 16</div>
+        </div>
+
+        <!-- 第16页：结束页 -->
+        <div class="slide end">
+            <h2>感谢聆听</h2>
+            <p>请各位老师批评指正</p>
+            <p style="margin-top: 60px; font-size: 18px; color: #888;">
+                Q & A
+            </p>
+            <div class="slide-number" style="color: #666;">16 / 16</div>
+        </div>
+
+    </div>
+</body>
+</html>
