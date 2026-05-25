@@ -24,7 +24,7 @@ class Club(models.Model):
     name = models.CharField(verbose_name="社团名称", max_length=100, null=False, blank=False)
     description = models.TextField(verbose_name="社团简介", null=True, blank=True)
     established_date = models.DateField(verbose_name="成立日期", null=True, blank=True, default=datetime.date.today)
-    president = models.CharField(verbose_name="社长姓名", max_length=30, null=True, blank=True)
+    president_id = models.CharField(verbose_name="社长学号", max_length=30, null=True, blank=True)
     contact_phone = models.CharField(verbose_name="联系电话", max_length=11, null=True, blank=True)
     contact_email = models.EmailField(verbose_name="联系邮箱", null=True, blank=True)
     create_time = models.DateTimeField(verbose_name="创建时间", null=True, blank=True, default=datetime.datetime.now)

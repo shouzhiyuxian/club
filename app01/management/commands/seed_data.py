@@ -63,7 +63,7 @@ class Command(BaseCommand):
                 defaults={
                     "description": desc,
                     "established_date": timezone.now().date() - datetime.timedelta(days=random.randint(200, 800)),
-                    "president": president,
+                    "president_id": president,
                     "contact_phone": phone,
                     "contact_email": email,
                     "status": 1,

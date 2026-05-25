@@ -8,7 +8,7 @@ from app01.srcs.utils.role_helper import get_request_role
 
 
 def _sync_club_president_role(club_obj, president_member_obj):
-    """同步社团社长：成员角色与社团社长姓名保持一致。"""
+    """同步社团社长：成员角色与社团社长学号保持一致。"""
     if not club_obj:
         return
     
@@ -35,10 +35,10 @@ def _sync_club_president_role(club_obj, president_member_obj):
         member.club_id = club_id
         member.role = role_president
         member.save(update_fields=["club_id", "role_id"])
-        # 更新社团表的社长姓名
-        if club_obj.president != member.name:
-            club_obj.president = member.name
-            club_obj.save(update_fields=["president"])
+        # 更新社团表的社长学号
+        if club_obj.president_id != member.member_id:
+            club_obj.president_id = member.member_id
+            club_obj.save(update_fields=["president_id"])
 
 
 def club_list(req):
@@ -58,7 +58,7 @@ def club_list(req):
     
     if req.GET.get("export") == "1":
         headers = ["社团ID", "名称", "简介", "成立日期", "社长", "创建时间", "成员人数"]
-        rows = [[c.club_id, c.name, (c.description or "")[:50], c.established_date, c.president or "", c.create_time, c.member_count] for c in queryset]
+        rows = [[c.club_id, c.name, (c.description or "")[:50], c.established_date, c.president_id or "", c.create_time, c.member_count] for c in queryset]
         return export_to_excel(rows, headers, filename="社团列表.xlsx", sheet_name="社团")
     
     page_nav_obj = PageNav(req, queryset)
@@ -162,9 +162,9 @@ def club_transfer(req):
     # 原社长改为普通成员
     current.role = role_member
     current.save(update_fields=["role_id"])
-    # 更新社团表的社长姓名
-    club.president = to_member.name
-    club.save(update_fields=["president"])
+    # 更新社团表的社长学号
+    club.president_id = to_member.member_id
+    club.save(update_fields=["president_id"])
     # 当前登录者变为普通成员视角
     req.session["info"]["type"] = "member"
     req.session["info"]["role_level"] = 2

@@ -107,7 +107,7 @@ class ClubModelForm(BootstrapModelForm):
     established_date = forms.DateField(required=False,
                                        label="成立日期",
                                        widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}))
-    president = forms.ChoiceField(
+    president_id = forms.ChoiceField(
         required=False,
         label="社长",
         choices=[],
@@ -116,7 +116,7 @@ class ClubModelForm(BootstrapModelForm):
     
     class Meta:
         model = Club
-        fields = ["name", "description", "established_date", "president"]
+        fields = ["name", "description", "established_date", "president_id"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -135,20 +135,20 @@ class ClubModelForm(BootstrapModelForm):
             (m.member_id, f"{m.name}（{m.member_id}）")
             for m in members_qs
         ]
-        self.fields["president"].choices = choices
+        self.fields["president_id"].choices = choices
         self._president_member_obj = None
 
-        # 回显当前社长：按本社团 + 姓名反查到成员学号
-        if self.instance and self.instance.club_id and self.instance.president:
+        # 回显当前社长：按本社团 + 学号反查
+        if self.instance and self.instance.club_id and self.instance.president_id:
             current = Member.objects.filter(
                 club_id=self.instance.club_id,
-                name=self.instance.president,
+                member_id=self.instance.president_id,
             ).order_by("member_id").first()
             if current:
-                self.initial["president"] = current.member_id
+                self.initial["president_id"] = current.member_id
 
-    def clean_president(self):
-        member_id = (self.cleaned_data.get("president") or "").strip()
+    def clean_president_id(self):
+        member_id = (self.cleaned_data.get("president_id") or "").strip()
         if not member_id:
             self._president_member_obj = None
             return ""
@@ -156,8 +156,8 @@ class ClubModelForm(BootstrapModelForm):
         if not member_obj:
             raise ValidationError("所选社长成员不存在")
         self._president_member_obj = member_obj
-        # 模型字段仍存社长姓名
-        return member_obj.name
+        # 模型字段存社长学号
+        return member_obj.member_id
     
 # 角色相关表单
 class RoleModelForm(BootstrapModelForm):
@@ -203,7 +203,7 @@ class MemberModelForm(BootstrapModelForm):
             self._old_club_id = None
     
     def save(self, commit=True):
-        """重写 save 方法，同步 Club.president 字段和原社长降级"""
+        """重写 save 方法，同步 Club.president_id 字段和原社长降级"""
         instance = super().save(commit=False)
         
         # 检测角色是否变为社长
@@ -216,10 +216,10 @@ class MemberModelForm(BootstrapModelForm):
             except Role.DoesNotExist:
                 pass
         
-        # 如果变为社长，同步 Club.president 并降级原社长
+        # 如果变为社长，同步 Club.president_id 并降级原社长
         if is_now_president and instance.club_id:
-            # 更新社团表的社长姓名
-            Club.objects.filter(club_id=instance.club_id).update(president=instance.name)
+            # 更新社团表的社长学号
+            Club.objects.filter(club_id=instance.club_id).update(president_id=instance.member_id)
             
             # 将原社长（如果有）降级为普通成员
             role_member = Role.objects.filter(level=2).first()
@@ -229,7 +229,7 @@ class MemberModelForm(BootstrapModelForm):
                     role__level=1
                 ).exclude(member_id=instance.member_id).update(role=role_member)
         
-        # 如果之前是社长但现在不是，清除 Club.president
+        # 如果之前是社长但现在不是，清除 Club.president_id
         if self._old_role_id and instance.role_id:
             try:
                 old_role = Role.objects.get(role_id=self._old_role_id)
@@ -239,8 +239,8 @@ class MemberModelForm(BootstrapModelForm):
                     if self._old_club_id:
                         Club.objects.filter(
                             club_id=self._old_club_id, 
-                            president=instance.name
-                        ).update(president="")
+                            president_id=instance.member_id
+                        ).update(president_id="")
             except Role.DoesNotExist:
                 pass
         
